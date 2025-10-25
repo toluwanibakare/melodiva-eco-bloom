@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ShoppingCart, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, ArrowLeft } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 import { SoapVariant, SoapSize, OilSize } from '@/types/product';
@@ -74,6 +74,18 @@ const ProductDetail = () => {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      {/* Back button */}
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="aspect-square overflow-hidden rounded-lg bg-muted">
           <img

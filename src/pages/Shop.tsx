@@ -19,15 +19,20 @@ const Shop = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = products
+  .filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = !selectedType || product.type === selectedType;
-    const matchesVariant = !selectedVariant || 
-                          (product.variants?.some(v => v.variant === selectedVariant));
-    
+    const matchesVariant =
+      !selectedVariant ||
+      product.variants?.some((v) => v.variant === selectedVariant);
+
     return matchesSearch && matchesType && matchesVariant;
-  });
+  })
+  .slice(2);
+
 
   const clearFilters = () => {
     setSelectedType(null);

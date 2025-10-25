@@ -10,9 +10,10 @@ import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import About from "./pages/About";
+import Contact from "./pages/Contact.tsx";
 import Affiliate from "./pages/Affiliate";
 import NotFound from "./pages/NotFound";
+import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
 const queryClient = new QueryClient();
 
@@ -31,14 +32,16 @@ const App = () => (
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/affiliate" element={<Affiliate />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />
         </div>
+
+        {/* WhatsApp floating button appears on every page */}
+        <WhatsAppButton />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

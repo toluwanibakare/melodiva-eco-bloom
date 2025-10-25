@@ -1,10 +1,24 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { DollarSign, Users, TrendingUp } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Affiliate = () => {
+  const navigate = useNavigate();
   return (
     <div className="container mx-auto px-4 py-12">
+      {/* Back button */}
+            <div className="mb-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Affiliate Program</h1>

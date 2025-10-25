@@ -1,15 +1,71 @@
 import { Product } from '@/types/product';
 import blackSoapImg from '@/assets/black-soap.jpg';
 import kernelOilImg from '@/assets/kernel-oil.jpg';
+import bs_et250 from '@/assets/bs_et-250.jpg';
+import bs_et500 from '@/assets/bs_et-500.jpg';
+import bs_nf250 from '@/assets/bs_nf-250.jpg';
+import bs_nf500 from '@/assets/bs_nf-500.jpg';
+import bs_p250 from '@/assets/bs_p-250.jpg';
+import bs_p500 from '@/assets/bs_p-500.jpg';
+import ke250 from '@/assets/ke_250.jpg';
+import ke500 from '@/assets/ke_500.jpg';
+import ke1k from '@/assets/ke_1000.jpg';
+
 
 export const products: Product[] = [
+  // Black Soap - Home Page
+  {
+    id: 'black-soap',
+    name: 'Natural Black Soap',
+    type: 'black-soap',
+    description: 'Natural African black soap made with traditional methods. Rich in vitamins and antioxidants, perfect for deep cleansing and nourishing your skin naturally.',
+    image: blackSoapImg,
+    basePrice: 2000,
+    variants: [
+      {
+        variant: 'exquisite',
+        sizes: [
+          { size: '250g', price: 2500, stock: 50 },
+          { size: '500g', price: 4500, stock: 30 }
+        ]
+      },
+      {
+        variant: 'perfume',
+        sizes: [
+          { size: '250g', price: 2200, stock: 45 },
+          { size: '500g', price: 4000, stock: 25 }
+        ]
+      },
+      {
+        variant: 'natural',
+        sizes: [
+          { size: '250g', price: 2000, stock: 60 },
+          { size: '500g', price: 3800, stock: 40 }
+        ]
+      }
+    ]
+  },
+  //Kernel Oil - Home Page
+  {
+    id: 'kernel-oil',
+    name: 'Pure Kernel Oil',
+    type: 'kernel-oil',
+    description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+    image: kernelOilImg,
+    basePrice: 1500,
+    sizes: [
+      { size: '250ml', price: 1500, stock: 70 },
+      { size: '500ml', price: 2800, stock: 50 },
+      { size: '1000ml', price: 5000, stock: 30 }
+    ]
+  },
   // Black Soap - Exquisite Variants
   {
     id: 'black-soap-exquisite-250g',
     name: 'Black Soap - Exquisite (250g)',
     type: 'black-soap',
-    description: 'Authentic African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
-    image: blackSoapImg,
+    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
+    image: bs_et250,
     basePrice: 2500,
     variants: [
       {
@@ -24,8 +80,8 @@ export const products: Product[] = [
     id: 'black-soap-exquisite-500g',
     name: 'Black Soap - Exquisite (500g)',
     type: 'black-soap',
-    description: 'Authentic African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
-    image: blackSoapImg,
+    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
+    image: bs_et500,
     basePrice: 4500,
     variants: [
       {
@@ -42,7 +98,7 @@ export const products: Product[] = [
     name: 'Black Soap - Perfume (250g)',
     type: 'black-soap',
     description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skincare routine.',
-    image: blackSoapImg,
+    image: bs_p250,
     basePrice: 2200,
     variants: [
       {
@@ -58,7 +114,7 @@ export const products: Product[] = [
     name: 'Black Soap - Perfume (500g)',
     type: 'black-soap',
     description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skincare routine.',
-    image: blackSoapImg,
+    image: bs_p500,
     basePrice: 4000,
     variants: [
       {
@@ -75,7 +131,7 @@ export const products: Product[] = [
     name: 'Black Soap - Natural (250g)',
     type: 'black-soap',
     description: 'Pure natural African black soap with no added fragrances. Perfect for sensitive skin and those who prefer unscented products.',
-    image: blackSoapImg,
+    image: bs_nf250,
     basePrice: 2000,
     variants: [
       {
@@ -91,7 +147,7 @@ export const products: Product[] = [
     name: 'Black Soap - Natural (500g)',
     type: 'black-soap',
     description: 'Pure natural African black soap with no added fragrances. Perfect for sensitive skin and those who prefer unscented products.',
-    image: blackSoapImg,
+    image: bs_nf500,
     basePrice: 3800,
     variants: [
       {
@@ -108,7 +164,7 @@ export const products: Product[] = [
     name: 'Pure Kernel Oil (250ml)',
     type: 'kernel-oil',
     description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
-    image: kernelOilImg,
+    image: ke250,
     basePrice: 1500,
     sizes: [
       { size: '250ml', price: 1500, stock: 70 }
@@ -119,7 +175,7 @@ export const products: Product[] = [
     name: 'Pure Kernel Oil (500ml)',
     type: 'kernel-oil',
     description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
-    image: kernelOilImg,
+    image: ke500,
     basePrice: 2800,
     sizes: [
       { size: '500ml', price: 2800, stock: 50 }
@@ -130,7 +186,7 @@ export const products: Product[] = [
     name: 'Pure Kernel Oil (1000ml)',
     type: 'kernel-oil',
     description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
-    image: kernelOilImg,
+    image: ke1k,
     basePrice: 5000,
     sizes: [
       { size: '1000ml', price: 5000, stock: 30 }

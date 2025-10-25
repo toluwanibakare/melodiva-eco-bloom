@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
-import heroImg from '@/assets/hero-bg.jpg';
-import { Leaf, Sparkles, Heart } from 'lucide-react';
+import heroImg from '@/assets/hero-bg.png';
+import { Leaf, Star, Heart, Award } from 'lucide-react';
+import melodivaLogo from "@/assets/logo-bold.jpg";
 
 const Home = () => {
   return (
@@ -22,18 +23,70 @@ const Home = () => {
             Natural Beauty, Naturally Yours
           </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-white/90">
-            Discover the power of authentic African black soap and pure kernel oil
+            Discover the power of nature with our premium black soap and kernel oil products. Handcrafted with love for your skin's natural glow.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-lg px-8">
               <Link to="/shop">Shop Now</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
-              <Link to="/about">Learn More</Link>
+              <Link to="/affiliate">Join Affiliate</Link>
             </Button>
           </div>
         </div>
       </section>
+
+            {/* About Melodiva */}
+      <section className="py-16 bg-background">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+          {/* Text Section */}
+          <div>
+            <h2 className="text-3xl font-bold text-primary mb-4">
+              About Melodiva Skin Care
+            </h2>
+            <p className="text-lg text-foreground/80 mb-4">
+              Melodiva Skin Care was registered to do business in Nigeria on
+              17th November, 2023. Our business is the manufacturing and sales
+              of organic cosmetic products.
+            </p>
+            <p className="text-foreground/70 mb-4">
+              We manufacture soaps and oils that take care of the skin, which is
+              the largest organ of the human body. We believe that everyone is
+              naturally beautiful, hence our soaps and oils are made from
+              organic plants that enhance natural beauty.
+            </p>
+            <p className="text-foreground/70">
+              Our products are suitable for people of all ages, races, skin
+              types, and colors.
+            </p>
+
+            {/* Feature Icons */}
+            <div className="grid grid-cols-2 gap-6 mt-8">
+              <div className="text-center">
+                <Award className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
+                <h6 className="font-semibold text-foreground">Premium Quality</h6>
+                <small className="text-muted-foreground">Handcrafted with care</small>
+              </div>
+              <div className="text-center">
+                <Heart className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
+                <h6 className="font-semibold text-foreground">Customer Love</h6>
+                <small className="text-muted-foreground">Trusted by many</small>
+              </div>
+            </div>
+          </div>
+
+          {/* Image Section */}
+          <div className="text-center">
+            <img
+              src={melodivaLogo}
+              alt="About Melodiva"
+              className="rounded-lg shadow-lg mx-auto object-cover max-h-[400px] transition-transform transform hover:scale-105"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
 
       {/* Features Section */}
       <section className="py-20 bg-muted/50">
@@ -45,12 +98,12 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">100% Natural</h3>
               <p className="text-muted-foreground">
-                Made with authentic ingredients, free from harmful chemicals
+                All our products are made from natural ingredients with no harmful chemicals.
               </p>
             </div>
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Sparkles className="h-8 w-8 text-primary" />
+                <Star className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Premium Quality</h3>
               <p className="text-muted-foreground">
@@ -101,7 +154,7 @@ const Home = () => {
               <div className="flex items-center mb-4">
                 <div className="flex text-primary">
                   {[...Array(5)].map((_, i) => (
-                    <Sparkles key={i} className="h-4 w-4 fill-current" />
+                    <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
               </div>
@@ -122,8 +175,8 @@ const Home = () => {
             <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '100ms' }}>
               <div className="flex items-center mb-4">
                 <div className="flex text-primary">
-                  {[...Array(5)].map((_, i) => (
-                    <Sparkles key={i} className="h-4 w-4 fill-current" />
+                  {[...Array(4)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
               </div>
@@ -144,8 +197,8 @@ const Home = () => {
             <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center mb-4">
                 <div className="flex text-primary">
-                  {[...Array(5)].map((_, i) => (
-                    <Sparkles key={i} className="h-4 w-4 fill-current" />
+                  {[...Array(4)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
               </div>
@@ -174,13 +227,13 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
               <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in">
                 <div className="text-4xl mb-4">🌿</div>
-                <h3 className="text-xl font-semibold mb-2">Ethically Sourced</h3>
+                <h3 className="text-xl font-semibold mb-2">Naturally Sourced</h3>
                 <p className="text-muted-foreground">
                   All ingredients sourced directly from local Nigerian farmers, supporting communities
                 </p>
               </div>
               <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <div className="text-4xl mb-4">✨</div>
+                <div className="text-4xl mb-4">🚛</div>
                 <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
                 <p className="text-muted-foreground">
                   Quick and reliable delivery across Nigeria. Lagos orders delivered within 24-48 hours
@@ -188,9 +241,9 @@ const Home = () => {
               </div>
               <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '200ms' }}>
                 <div className="text-4xl mb-4">💚</div>
-                <h3 className="text-xl font-semibold mb-2">Money-Back Guarantee</h3>
+                <h3 className="text-xl font-semibold mb-2">Made with Love in Nigeria</h3>
                 <p className="text-muted-foreground">
-                  Not satisfied? Get a full refund within 14 days, no questions asked
+                  Locally made. Naturally pure. Thoughtfully created for every skin type
                 </p>
               </div>
               <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '300ms' }}>
@@ -212,7 +265,7 @@ const Home = () => {
             Join Our Affiliate Program
           </h2>
           <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-            Earn commissions by sharing products you love. Get your unique referral code today!
+            Earn commissions when customers buy our products through your code. Get your unique referral code today!
           </p>
           <Button asChild size="lg" variant="secondary" className="text-lg px-8">
             <Link to="/affiliate">Learn More</Link>

@@ -46,7 +46,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <Button asChild className="w-full group-hover:bg-primary group-hover:scale-105 transition-all duration-300">
           <Link to={`/product/${product.id}`}>
             <ShoppingCart className="mr-2 h-4 w-4" />
-            View Options
+            Add to Cart
           </Link>
         </Button>
       </CardFooter>

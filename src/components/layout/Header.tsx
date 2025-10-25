@@ -13,7 +13,7 @@ const Header = () => {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
-    { name: 'About', href: '/about' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (
@@ -36,7 +36,7 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-me font-bold text-foreground hover:text-primary transition-all duration-300 hover:scale-105"
+                className="text-sm font-bold text-foreground hover:text-primary transition-all duration-300 hover:scale-105"
               >
                 {item.name}
               </Link>
