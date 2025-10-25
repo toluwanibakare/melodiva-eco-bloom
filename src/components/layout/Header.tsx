@@ -1,9 +1,10 @@
-import { ShoppingCart, Menu, Leaf } from 'lucide-react';
+import { ShoppingCart, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/store/cartStore';
+import melodivaLogo from '/public/melodiva-logo.png';
 
 const Header = () => {
   const cartItems = useCartStore(state => state.items);
@@ -19,23 +20,30 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
+          {/* Logo section */}
           <Link to="/" className="flex items-center space-x-2">
-            <Leaf className="h-6 w-6 text-primary" />
+            <img
+              src={melodivaLogo}
+              alt="Melodiva Logo"
+              className="h-12 w-auto object-contain"
+            />
             <span className="text-xl font-bold text-foreground">Melodiva Skincare</span>
           </Link>
 
+          {/* Navigation links (desktop) */}
           <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-sm font-bold text-foreground hover:text-primary transition-all duration-300 hover:scale-105"
+                className="text-me font-bold text-foreground hover:text-primary transition-all duration-300 hover:scale-105"
               >
                 {item.name}
               </Link>
             ))}
           </nav>
 
+          {/* Cart and mobile menu */}
           <div className="flex items-center space-x-4">
             <Link to="/cart">
               <Button variant="ghost" size="icon" className="relative">
