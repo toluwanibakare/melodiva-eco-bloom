@@ -42,7 +42,7 @@ All colors MUST be HSL.
     --nature-green: 140 52% 33%;
     --nature-green-light: 140 45% 45%;
     --nature-green-dark: 140 60% 25%;
-    --earth-brown: 25 15% 8%;
+    --earth-brown: 30 25% 25%;
     --cream: 30 20% 96%;
     
     /* Gradients */
@@ -112,9 +112,5 @@ All colors MUST be HSL.
   
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300;
-  }
-
-  .hover-scale {
-    @apply transition-transform duration-300 hover:scale-105;
   }
 }

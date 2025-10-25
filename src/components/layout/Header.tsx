@@ -29,7 +29,7 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-sm font-bold text-foreground hover:text-primary transition-all duration-300 hover:scale-105"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
               >
                 {item.name}
               </Link>
@@ -60,7 +60,7 @@ const Header = () => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className="text-lg font-bold text-foreground hover:text-primary transition-colors"
+                      className="text-lg font-medium text-foreground hover:text-primary transition-colors"
                     >
                       {item.name}
                     </Link>
