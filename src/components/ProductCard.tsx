@@ -18,19 +18,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/50">
       <Link to={`/product/${product.id}`}>
-        <div className="aspect-square overflow-hidden bg-muted">
+        <div className="aspect-square overflow-hidden bg-muted relative">
           <img
             src={product.image}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-all duration-500 group-hover:scale-110"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
       </Link>
       <CardContent className="p-4">
         <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">
             {product.name}
           </h3>
         </Link>
@@ -42,7 +43,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button asChild className="w-full">
+        <Button asChild className="w-full group-hover:bg-primary group-hover:scale-105 transition-all duration-300">
           <Link to={`/product/${product.id}`}>
             <ShoppingCart className="mr-2 h-4 w-4" />
             View Options
