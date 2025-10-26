@@ -23,7 +23,7 @@ const Affiliate = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Affiliate Program</h1>
           <p className="text-lg text-muted-foreground">
-            Earn money by sharing products you love!
+            Earn commissions when customers buy our products through your code!
           </p>
         </div>
 

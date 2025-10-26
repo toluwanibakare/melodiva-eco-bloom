@@ -1,11 +1,11 @@
 export interface StateCity {
-  name: string;
+  state: string;
   cities: string[];
 }
 
-export const statesAndCities: StateCity[] = [
+export const nigeriaStates: StateCity[] = [
   {
-    "name": "Abia",
+    "state": "Abia",
     "cities": [
       "Aba South",
       "Arochukwu",
@@ -26,7 +26,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Adamawa",
+    "state": "Adamawa",
     "cities": [
       "Fufure",
       "Ganye",
@@ -51,7 +51,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Akwa Ibom",
+    "state": "Akwa Ibom",
     "cities": [
       "Eastern Obolo",
       "Eket",
@@ -86,7 +86,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Anambra",
+    "state": "Anambra",
     "cities": [
       "Anambra East",
       "Anambra West",
@@ -111,7 +111,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Bauchi",
+    "state": "Bauchi",
     "cities": [
       "Bauchi",
       "Bogoro",
@@ -135,7 +135,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Bayelsa",
+    "state": "Bayelsa",
     "cities": [
       "Ekeremor",
       "Kolokuma/Opokuma",
@@ -147,7 +147,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Benue",
+    "state": "Benue",
     "cities": [
       "Apa",
       "Ado",
@@ -174,7 +174,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Borno",
+    "state": "Borno",
     "cities": [
       "Askira/Uba",
       "Bama",
@@ -205,7 +205,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Cross River",
+    "state": "Cross River",
     "cities": [
       "Akamkpa",
       "Akpabuyo",
@@ -227,7 +227,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Delta",
+    "state": "Delta",
     "cities": [
       "Aniocha South",
       "Bomadi",
@@ -256,7 +256,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Ebonyi",
+    "state": "Ebonyi",
     "cities": [
       "Afikpo North",
       "Afikpo South",
@@ -273,7 +273,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Edo",
+    "state": "Edo",
     "cities": [
       "Egor",
       "Esan Central",
@@ -295,7 +295,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Ekiti",
+    "state": "Ekiti",
     "cities": [
       "Efon",
       "Ekiti East",
@@ -315,7 +315,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Enugu",
+    "state": "Enugu",
     "cities": [
       "Awgu",
       "Enugu East",
@@ -336,7 +336,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "FCT",
+    "state": "FCT",
     "cities": [
       "Bwari",
       "Gwagwalada",
@@ -346,7 +346,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Gombe",
+    "state": "Gombe",
     "cities": [
       "Balanga",
       "Billiri",
@@ -361,7 +361,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Imo",
+    "state": "Imo",
     "cities": [
       "Ahiazu Mbaise",
       "Ehime Mbano",
@@ -392,7 +392,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Jigawa",
+    "state": "Jigawa",
     "cities": [
       "Babura",
       "Biriniwa",
@@ -423,7 +423,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Kaduna",
+    "state": "Kaduna",
     "cities": [
       "Chikun",
       "Giwa",
@@ -450,7 +450,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Kano",
+    "state": "Kano",
     "cities": [
       "Albasu",
       "Bagwai",
@@ -498,7 +498,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Katsina",
+    "state": "Katsina",
     "cities": [
       "Batagarawa",
       "Batsari",
@@ -536,7 +536,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Kebbi",
+    "state": "Kebbi",
     "cities": [
       "Arewa Dandi",
       "Argungu",
@@ -561,7 +561,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Kogi",
+    "state": "Kogi",
     "cities": [
       "Ajaokuta",
       "Ankpa",
@@ -586,7 +586,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Kwara",
+    "state": "Kwara",
     "cities": [
       "Baruten",
       "Edu",
@@ -606,7 +606,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Lagos",
+    "state": "Lagos",
     "cities": [
       "Ajeromi-Ifelodun",
       "Alimosho",
@@ -630,7 +630,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Nasarawa",
+    "state": "Nasarawa",
     "cities": [
       "Awe",
       "Doma",
@@ -647,7 +647,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Niger",
+    "state": "Niger",
     "cities": [
       "Agwara",
       "Bida",
@@ -676,7 +676,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Ogun",
+    "state": "Ogun",
     "cities": [
       "Abeokuta South",
       "Ado-Odo/Ota",
@@ -700,7 +700,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Ondo",
+    "state": "Ondo",
     "cities": [
       "Akoko North-West",
       "Akoko South-West",
@@ -722,7 +722,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Osun",
+    "state": "Osun",
     "cities": [
       "Atakunmosa West",
       "Aiyedaade",
@@ -756,7 +756,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Oyo",
+    "state": "Oyo",
     "cities": [
       "Akinyele",
       "Atiba",
@@ -793,7 +793,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Plateau",
+    "state": "Plateau",
     "cities": [
       "Barkin Ladi",
       "Bassa",
@@ -814,7 +814,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Rivers",
+    "state": "Rivers",
     "cities": [
       "Ahoada East",
       "Ahoada West",
@@ -841,7 +841,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Sokoto",
+    "state": "Sokoto",
     "cities": [
       "Bodinga",
       "Dange Shuni",
@@ -868,7 +868,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Taraba",
+    "state": "Taraba",
     "cities": [
       "Bali",
       "Donga",
@@ -888,7 +888,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Yobe",
+    "state": "Yobe",
     "cities": [
       "Bursari",
       "Damaturu",
@@ -909,7 +909,7 @@ export const statesAndCities: StateCity[] = [
     ]
   },
   {
-    "name": "Zamfara",
+    "state": "Zamfara",
     "cities": [
       "Bakura",
       "Birnin Magaji/Kiyaw",
@@ -930,12 +930,12 @@ export const statesAndCities: StateCity[] = [
 
 
 export const securityQuestions = [
-  "What is your mother's maiden name?",
-  "What was the name of your first pet?",
+  "What is your mother's maiden state?",
+  "What was the state of your first pet?",
   "What city were you born in?",
   "What is your favorite book?",
   "What was the make of your first car?",
   "What is your favorite food?",
-  "What was the name of your elementary school?",
-  "What is your father's middle name?"
+  "What was the state of your elementary school?",
+  "What is your father's middle state?"
 ];

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mail, MapPin } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -49,15 +51,17 @@ export default function ContactPage() {
             </p>
             <ul className="space-y-3 text-foreground">
               <li className="flex items-start gap-2">
-                <span className="text-primary font-semibold">📍</span>
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
                 <span><strong>Address:</strong> Lagos, Nigeria</span>
               </li>
+
               <li className="flex items-start gap-2">
-                <span className="text-primary font-semibold">📧</span>
+                <Mail className="h-5 w-5 text-primary mt-0.5" />
                 <span><strong>Email:</strong> melodivaproducts@gmail.com</span>
               </li>
+
               <li className="flex items-start gap-2">
-                <span className="text-primary font-semibold">📱</span>
+                <FaWhatsapp className="h-5 w-5 text-primary mt-0.5" />
                 <span><strong>WhatsApp:</strong> +234 801 234 5678</span>
               </li>
             </ul>
