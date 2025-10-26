@@ -1,14 +1,43 @@
-import { ShoppingCart, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ShoppingCart, Menu, User, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/store/cartStore';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import melodivaLogo from '/public/melodiva-logo.png';
 
 const Header = () => {
   const cartItems = useCartStore(state => state.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -56,6 +85,29 @@ const Header = () => {
               </Button>
             </Link>
 
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full hidden md:flex">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="text-sm text-muted-foreground cursor-default focus:bg-transparent">
+                    {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button asChild variant="default" size="sm" className="hidden md:flex">
+                <Link to="/auth">Sign In</Link>
+              </Button>
+            )}
+
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon">
@@ -73,6 +125,21 @@ const Header = () => {
                       {item.name}
                     </Link>
                   ))}
+                  {user ? (
+                    <>
+                      <div className="text-sm text-muted-foreground pt-4 border-t">
+                        {user.email}
+                      </div>
+                      <Button onClick={handleSignOut} variant="outline" className="w-full">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <Button asChild className="w-full">
+                      <Link to="/auth">Sign In</Link>
+                    </Button>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
