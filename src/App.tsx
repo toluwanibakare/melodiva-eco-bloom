@@ -16,6 +16,7 @@ import Affiliate from "./pages/Affiliate";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
