@@ -12,6 +12,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact.tsx";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import Affiliate from "./pages/Affiliate";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/affiliate" element={<Affiliate />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

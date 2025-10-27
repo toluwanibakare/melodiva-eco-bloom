@@ -96,6 +96,10 @@ const Header = () => {
                   <DropdownMenuItem className="text-sm text-muted-foreground cursor-default focus:bg-transparent">
                     {user.email}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -130,6 +134,10 @@ const Header = () => {
                       <div className="text-sm text-muted-foreground pt-4 border-t">
                         {user.email}
                       </div>
+                      <Button onClick={() => navigate('/profile')} variant="outline" className="w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </Button>
                       <Button onClick={handleSignOut} variant="outline" className="w-full">
                         <LogOut className="h-4 w-4 mr-2" />
                         Sign Out

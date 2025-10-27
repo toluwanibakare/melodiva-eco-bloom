@@ -11,7 +11,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [review, setReview] = useState({ name: "", rating: "", comment: "" });
+  const [review, setReview] = useState({ name: "", rating: "", comment: "", isAnonymous: false });
   const { toast } = useToast();
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -27,9 +27,11 @@ export default function ContactPage() {
     e.preventDefault();
     toast({
       title: "Review Submitted!",
-      description: "Thank you for your feedback.",
+      description: review.isAnonymous 
+        ? "Your anonymous review has been submitted. Thank you for your feedback."
+        : "Thank you for your feedback.",
     });
-    setReview({ name: "", rating: "", comment: "" });
+    setReview({ name: "", rating: "", comment: "", isAnonymous: false });
   };
 
   return (
@@ -123,8 +125,21 @@ export default function ContactPage() {
                 placeholder="Your name"
                 value={review.name}
                 onChange={(e) => setReview({ ...review, name: e.target.value })}
-                required
+                required={!review.isAnonymous}
+                disabled={review.isAnonymous}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="anonymous"
+                checked={review.isAnonymous}
+                onChange={(e) => setReview({ ...review, isAnonymous: e.target.checked, name: e.target.checked ? "Anonymous" : "" })}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor="anonymous" className="text-sm cursor-pointer">
+                Submit as Anonymous
+              </Label>
             </div>
             <div>
               <Label htmlFor="rating">Rating</Label>

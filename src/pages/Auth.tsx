@@ -10,12 +10,22 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { nigeriaStates, securityQuestions } from "@/data/nigeriaLocations";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedState, setSelectedState] = useState("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [forgotPasswordData, setForgotPasswordData] = useState({
+    email: "",
+    fullName: "",
+    securityQuestion: "",
+    securityAnswer: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
   
   // Sign up form data
   const [signUpData, setSignUpData] = useState({
@@ -168,6 +178,97 @@ export default function Auth() {
     return stateData?.cities || [];
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (forgotPasswordData.newPassword !== forgotPasswordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (forgotPasswordData.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get user profile to verify security answer
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('security_question, security_answer, user_id')
+        .eq('email', forgotPasswordData.email)
+        .eq('full_name', forgotPasswordData.fullName)
+        .eq('security_question', forgotPasswordData.securityQuestion);
+
+      if (profileError || !profiles || profiles.length === 0) {
+        toast({
+          title: "Error",
+          description: "Could not find account with provided information",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      const profile = profiles[0];
+      
+      // Verify security answer (case-insensitive)
+      if (profile.security_answer.toLowerCase() !== forgotPasswordData.securityAnswer.toLowerCase()) {
+        toast({
+          title: "Error",
+          description: "Security answer is incorrect",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordData.email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success!",
+          description: "Password reset link has been sent to your email",
+        });
+        setForgotPasswordOpen(false);
+        setForgotPasswordData({
+          email: "",
+          fullName: "",
+          securityQuestion: "",
+          securityAnswer: "",
+          newPassword: "",
+          confirmPassword: ""
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <Card className="w-full max-w-2xl p-8 animate-fade-in">
@@ -209,6 +310,73 @@ export default function Auth() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Signing In..." : "Sign In"}
               </Button>
+              
+              <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="link" className="w-full mt-2">
+                    Forgot Password?
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Reset Password</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div>
+                      <Label htmlFor="forgot-email">Email Address</Label>
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        value={forgotPasswordData.email}
+                        onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="forgot-fullname">Full Name</Label>
+                      <Input
+                        id="forgot-fullname"
+                        type="text"
+                        value={forgotPasswordData.fullName}
+                        onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, fullName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="forgot-security-question">Security Question</Label>
+                      <Select
+                        value={forgotPasswordData.securityQuestion}
+                        onValueChange={(value) => setForgotPasswordData({ ...forgotPasswordData, securityQuestion: value })}
+                        required
+                      >
+                        <SelectTrigger id="forgot-security-question">
+                          <SelectValue placeholder="Select your security question" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {securityQuestions.map((question) => (
+                            <SelectItem key={question} value={question}>
+                              {question}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="forgot-security-answer">Security Answer</Label>
+                      <Input
+                        id="forgot-security-answer"
+                        type="text"
+                        value={forgotPasswordData.securityAnswer}
+                        onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, securityAnswer: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Verifying..." : "Reset Password"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </form>
           </TabsContent>
 
