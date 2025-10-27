@@ -40,23 +40,29 @@ export default function Auth() {
 
   // Check if user is already logged in
   useEffect(() => {
+    let active = true;
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (active && session && window.location.pathname !== "/auth") {
         navigate("/");
       }
     };
+
     checkUser();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
+
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,25 +1,33 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { DollarSign, Users, TrendingUp, ArrowLeft } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DollarSign, Users, TrendingUp, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const Affiliate = () => {
   const navigate = useNavigate();
+  const [agreed, setAgreed] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Back button */}
-            <div className="mb-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-                onClick={() => navigate(-1)}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-            </div>
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Affiliate Program</h1>
           <p className="text-lg text-muted-foreground">
@@ -27,6 +35,7 @@ const Affiliate = () => {
           </p>
         </div>
 
+        {/* How It Works */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card className="p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
@@ -57,7 +66,8 @@ const Affiliate = () => {
           </Card>
         </div>
 
-        <Card className="p-8">
+        {/* Commission Structure */}
+        <Card className="p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6">Commission Structure</h2>
           <div className="space-y-4 mb-8">
             <div className="flex justify-between items-center pb-4 border-b">
@@ -69,11 +79,74 @@ const Affiliate = () => {
               <span className="text-xl font-bold text-primary">₦1,000</span>
             </div>
           </div>
-          <div className="text-center">
-            <p className="text-muted-foreground mb-6">
-              Sign in or create an account to join our affiliate program
+
+          <div className="text-muted-foreground">
+            <p className="mb-2">
+              • Commissions are withdrawable once they reach ₦5,000.
             </p>
-            <Button size="lg">
+            <p>
+              • You can also use your commission balance to purchase Melodiva
+              products directly from our store.
+            </p>
+          </div>
+        </Card>
+
+        {/* How to Join */}
+        <Card className="p-8">
+          <h2 className="text-2xl font-bold mb-6">
+            How to Join the Affiliate Program
+          </h2>
+          <ol className="list-decimal list-inside space-y-3 text-muted-foreground mb-6">
+            <li>Ensure you are a registered Melodiva user.</li>
+            <li>
+              If not registered,{" "}
+              <span
+                onClick={() => navigate("/auth")}
+                className="text-primary underline cursor-pointer font-medium"
+              >
+                Register Now!
+              </span>
+            </li>
+            <li>
+              Read and agree to all{" "}
+              <a
+                href="/affiliate-rules"
+                className="text-primary underline font-medium"
+              >
+                Affiliate Program Rules
+              </a>
+              .
+            </li>
+            <li>
+              Once you agree to the rules, click "Get Started" to activate your
+              affiliate account.
+            </li>
+          </ol>
+
+          <div className="flex items-center space-x-2 mb-6">
+            <Checkbox
+              id="agree"
+              checked={agreed}
+              onCheckedChange={(value) => setAgreed(!!value)}
+            />
+            <Label htmlFor="agree" className="text-sm text-muted-foreground">
+              I have read and agree to all the{" "}
+              <a
+                href="/affiliate-rules"
+                className="text-primary underline font-medium"
+              >
+                Affiliate Program Rules
+              </a>
+              .
+            </Label>
+          </div>
+
+          <div className="text-center">
+            <Button
+              size="lg"
+              disabled={!agreed}
+              onClick={() => navigate("/")}
+            >
               Get Started
             </Button>
           </div>
