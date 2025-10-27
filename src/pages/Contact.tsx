@@ -8,30 +8,77 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [review, setReview] = useState({ name: "", rating: "", comment: "", isAnonymous: false });
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    setFormData({ name: "", email: "", message: "" });
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([{
+          name: formData.name,
+          email: formData.email,
+          message: formData.message
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Review Submitted!",
-      description: review.isAnonymous 
-        ? "Your anonymous review has been submitted. Thank you for your feedback."
-        : "Thank you for your feedback.",
-    });
-    setReview({ name: "", rating: "", comment: "", isAnonymous: false });
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .insert([{
+          name: review.isAnonymous ? "Anonymous" : review.name,
+          rating: parseInt(review.rating),
+          comment: review.comment,
+          is_anonymous: review.isAnonymous
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Review Submitted!",
+        description: review.isAnonymous 
+          ? "Your anonymous review has been submitted. Thank you for your feedback."
+          : "Thank you for your feedback.",
+      });
+      setReview({ name: "", rating: "", comment: "", isAnonymous: false });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit review. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -106,8 +153,8 @@ export default function ContactPage() {
                   className="min-h-[100px]"
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Send Message
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </Card>
@@ -167,8 +214,8 @@ export default function ContactPage() {
                 className="min-h-[100px]"
               />
             </div>
-            <Button type="submit" className="w-full">
-              Submit Review
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit Review"}
             </Button>
           </form>
         </Card>

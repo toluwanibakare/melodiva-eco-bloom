@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string
@@ -59,6 +83,33 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          name: string
+          rating: number
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          name: string
+          rating: number
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          name?: string
+          rating?: number
         }
         Relationships: []
       }
