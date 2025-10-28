@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Loader2, Copy, CheckCircle2, TrendingUp, Users, Wallet, DollarSign } from "lucide-react";
+import { Loader2, Copy, CheckCircle2, TrendingUp, Users, Wallet, DollarSign, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function AffiliateDashboard() {
@@ -14,6 +14,7 @@ export default function AffiliateDashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [affiliateData, setAffiliateData] = useState<any>(null);
   const [referralCount, setReferralCount] = useState(0);
@@ -76,6 +77,44 @@ export default function AffiliateDashboard() {
         description: "Your affiliate code has been copied to clipboard",
       });
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const generateNewCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
+  const regenerateCode = async () => {
+    setRegenerating(true);
+    try {
+      const newCode = generateNewCode();
+      
+      const { error } = await supabase
+        .from('affiliates')
+        .update({ affiliate_code: newCode })
+        .eq('id', affiliateData.id);
+
+      if (error) throw error;
+
+      setAffiliateData({ ...affiliateData, affiliate_code: newCode });
+      
+      toast({
+        title: "Code Updated!",
+        description: `Your new affiliate code is ${newCode}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to regenerate code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -224,6 +263,9 @@ export default function AffiliateDashboard() {
             />
             <Button onClick={copyCode} size="lg">
               {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+            </Button>
+            <Button onClick={regenerateCode} size="lg" variant="outline" disabled={regenerating}>
+              {regenerating ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-3">
