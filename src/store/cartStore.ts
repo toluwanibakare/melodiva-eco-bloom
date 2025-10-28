@@ -4,17 +4,24 @@ import { CartItem } from '@/types/product';
 
 interface CartStore {
   items: CartItem[];
+  affiliateCode: string;
+  affiliateDiscount: number;
   addItem: (item: CartItem) => void;
   removeItem: (productId: string, variant?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, variant?: string, size?: string) => void;
+  setAffiliateCode: (code: string) => void;
+  setAffiliateDiscount: (discount: number) => void;
   clearCart: () => void;
   getTotal: () => number;
+  getTotalWithDiscount: () => number;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      affiliateCode: '',
+      affiliateDiscount: 0,
       
       addItem: (item) => set((state) => {
         const existingIndex = state.items.findIndex(
@@ -50,11 +57,21 @@ export const useCartStore = create<CartStore>()(
         ),
       })),
 
-      clearCart: () => set({ items: [] }),
+      setAffiliateCode: (code) => set({ affiliateCode: code }),
+
+      setAffiliateDiscount: (discount) => set({ affiliateDiscount: discount }),
+
+      clearCart: () => set({ items: [], affiliateCode: '', affiliateDiscount: 0 }),
 
       getTotal: () => {
         const items = get().items;
         return items.reduce((total, item) => total + item.price * item.quantity, 0);
+      },
+
+      getTotalWithDiscount: () => {
+        const total = get().getTotal();
+        const discount = get().affiliateDiscount;
+        return total - discount;
       },
     }),
     {

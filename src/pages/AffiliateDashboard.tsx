@@ -227,7 +227,7 @@ export default function AffiliateDashboard() {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-3">
-            Share this code with customers. They'll get a discount and you'll earn {affiliateData.commission_rate}% commission on their purchases!
+            Share this code with customers. They'll get a 5% discount and you'll earn ₦1,000 per 2kg Black Soap or 1,000ml Kernel Oil sale (proportional for other amounts)!
           </p>
         </Card>
 

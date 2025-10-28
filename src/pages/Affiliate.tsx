@@ -168,12 +168,12 @@ const Affiliate = () => {
           <h2 className="text-2xl font-bold mb-6">Commission Structure</h2>
           <div className="space-y-4 mb-8">
             <div className="flex justify-between items-center pb-4 border-b">
-              <span className="font-medium">2kg Black Soap Sale</span>
+              <span className="font-medium">Commission per 2kg Black Soap or 1,000ml Kernel Oil</span>
               <span className="text-xl font-bold text-primary">₦1,000</span>
             </div>
-            <div className="flex justify-between items-center pb-4 border-b">
-              <span className="font-medium">1,000ml Kernel Oil Sale</span>
-              <span className="text-xl font-bold text-primary">₦1,000</span>
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">• For other quantities or products, commission is calculated proportionally</p>
+              <p className="mb-2">• Customers using your code get 5% discount on their purchase</p>
             </div>
           </div>
 

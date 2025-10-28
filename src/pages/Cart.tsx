@@ -2,10 +2,18 @@ import { Link } from 'react-router-dom';
 import { useCartStore } from '@/store/cartStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Trash2, ShoppingBag } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Trash2, ShoppingBag, Tag } from 'lucide-react';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Cart = () => {
-  const { items, removeItem, updateQuantity, getTotal } = useCartStore();
+  const { items, removeItem, updateQuantity, getTotal, affiliateCode, affiliateDiscount, setAffiliateCode, setAffiliateDiscount } = useCartStore();
+  const { toast } = useToast();
+  const [codeInput, setCodeInput] = useState('');
+  const [applyingCode, setApplyingCode] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -13,6 +21,64 @@ const Cart = () => {
       currency: 'NGN',
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const applyAffiliateCode = async () => {
+    if (!codeInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an affiliate code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setApplyingCode(true);
+    try {
+      const { data: affiliate, error } = await supabase
+        .from('affiliates')
+        .select('id, affiliate_code')
+        .eq('affiliate_code', codeInput.trim().toUpperCase())
+        .single();
+
+      if (error || !affiliate) {
+        toast({
+          title: "Invalid Code",
+          description: "The affiliate code you entered is not valid",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const subtotal = getTotal();
+      const discount = subtotal * 0.05; // 5% discount
+      
+      setAffiliateCode(codeInput.trim().toUpperCase());
+      setAffiliateDiscount(discount);
+      
+      toast({
+        title: "Code Applied!",
+        description: `You've saved ${formatPrice(discount)} with this code!`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to apply code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setApplyingCode(false);
+    }
+  };
+
+  const removeAffiliateCode = () => {
+    setAffiliateCode('');
+    setAffiliateDiscount(0);
+    setCodeInput('');
+    toast({
+      title: "Code Removed",
+      description: "Affiliate code has been removed from your order",
+    });
   };
 
   if (items.length === 0) {
@@ -29,9 +95,11 @@ const Cart = () => {
   }
 
   const subtotal = getTotal();
-  const interest = subtotal * 0.02;
+  const discountAmount = affiliateDiscount;
+  const subtotalAfterDiscount = subtotal - discountAmount;
+  const interest = subtotalAfterDiscount * 0.02;
   const deliveryFee = 1500; // Default to non-Lagos, will be calculated properly later
-  const total = subtotal + interest + deliveryFee;
+  const total = subtotalAfterDiscount + interest + deliveryFee;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -103,11 +171,49 @@ const Cart = () => {
         <div>
           <Card className="p-6 sticky top-24">
             <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+            
+            {/* Affiliate Code Section */}
+            <div className="mb-6 pb-6 border-b">
+              <Label className="mb-2 flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                Have an Affiliate Code?
+              </Label>
+              {!affiliateCode ? (
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Enter code"
+                    value={codeInput}
+                    onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                    className="uppercase"
+                  />
+                  <Button onClick={applyAffiliateCode} disabled={applyingCode}>
+                    {applyingCode ? "..." : "Apply"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="font-mono font-semibold text-green-700 dark:text-green-400">{affiliateCode}</p>
+                    <p className="text-sm text-green-600 dark:text-green-500">5% discount applied</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={removeAffiliateCode}>
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-semibold">{formatPrice(subtotal)}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-green-600 dark:text-green-400">
+                  <span>Affiliate Discount (5%)</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Interest (2%)</span>
                 <span>{formatPrice(interest)}</span>
