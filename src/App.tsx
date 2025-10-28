@@ -14,6 +14,8 @@ import Contact from "./pages/Contact.tsx";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Affiliate from "./pages/Affiliate";
+import AffiliateRules from "./pages/AffiliateRules";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
@@ -39,6 +41,8 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/affiliate" element={<Affiliate />} />
+              <Route path="/affiliate-rules" element={<AffiliateRules />} />
+              <Route path="/affiliate-dashboard" element={<AffiliateDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

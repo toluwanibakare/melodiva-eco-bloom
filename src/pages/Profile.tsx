@@ -13,6 +13,7 @@ export default function Profile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [isAffiliate, setIsAffiliate] = useState(false);
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
@@ -60,6 +61,15 @@ export default function Profile() {
           city: profileData.city
         });
       }
+
+      // Check if user is an affiliate
+      const { data: affiliate } = await supabase
+        .from('affiliates')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      setIsAffiliate(!!affiliate);
 
       setLoading(false);
     };
@@ -151,6 +161,14 @@ export default function Profile() {
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">My Profile</h1>
+
+        {isAffiliate && (
+          <div className="mb-6 text-center">
+            <Button onClick={() => navigate('/affiliate-dashboard')} size="lg" variant="outline">
+              View Affiliate Dashboard
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Profile Information */}

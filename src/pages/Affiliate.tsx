@@ -1,15 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DollarSign, Users, TrendingUp, ArrowLeft } from "lucide-react";
+import { DollarSign, Users, TrendingUp, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Affiliate = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isAffiliate, setIsAffiliate] = useState(false);
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+
+      if (session?.user) {
+        // Check if already an affiliate
+        const { data: affiliate } = await supabase
+          .from('affiliates')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (affiliate) {
+          setIsAffiliate(true);
+          navigate('/affiliate-dashboard');
+        }
+      }
+      setChecking(false);
+    };
+
+    checkUserStatus();
+  }, [navigate]);
+
+  const generateAffiliateCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'AFF-';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
+  const handleGetStarted = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to join the affiliate program",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!agreed) {
+      toast({
+        title: "Agreement Required",
+        description: "Please read and agree to the affiliate rules",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const affiliateCode = generateAffiliateCode();
+      
+      const { error } = await supabase
+        .from('affiliates')
+        .insert([{
+          user_id: user.id,
+          affiliate_code: affiliateCode,
+          commission_rate: 10.0
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "You're now part of the affiliate program!",
+      });
+      navigate('/affiliate-dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to register for affiliate program",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -144,10 +241,10 @@ const Affiliate = () => {
           <div className="text-center">
             <Button
               size="lg"
-              disabled={!agreed}
-              onClick={() => navigate("/")}
+              disabled={!agreed || loading}
+              onClick={handleGetStarted}
             >
-              Get Started
+              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : "Get Started"}
             </Button>
           </div>
         </Card>
