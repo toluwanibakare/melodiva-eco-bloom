@@ -13,7 +13,6 @@ const OrderTracking = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
-  const [statusHistory, setStatusHistory] = useState<any[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -23,32 +22,33 @@ const OrderTracking = () => {
         return;
       }
 
-      fetchOrderDetails();
+      fetchOrderDetails(session.user.id);
     };
 
     checkAuth();
   }, [orderId, navigate]);
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (userId: string) => {
     try {
+      console.log("Fetching order details for order:", orderId, "user:", userId);
+
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*')
         .eq('id', orderId)
+        .eq('user_id', userId) // Ensure user can only see their own orders
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error("Order fetch error:", orderError);
+        throw orderError;
+      }
+
+      console.log("Order data:", orderData);
       setOrder(orderData);
 
-      const { data: historyData, error: historyError } = await supabase
-        .from('order_status_history')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: false });
-
-      if (historyError) throw historyError;
-      setStatusHistory(historyData || []);
     } catch (error: any) {
+      console.error("Error fetching order:", error);
       toast({
         title: "Error",
         description: "Failed to load order details",
@@ -71,8 +71,9 @@ const OrderTracking = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-      case 'completed':
         return <Clock className="h-6 w-6" />;
+      case 'completed':
+        return <CheckCircle2 className="h-6 w-6" />;
       case 'packaged':
         return <Package className="h-6 w-6" />;
       case 'shipped':
@@ -84,8 +85,42 @@ const OrderTracking = () => {
     }
   };
 
-  const statusSteps = ['completed', 'packaged', 'shipped', 'delivered'];
+  const getStatusDescription = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Your order is being processed';
+      case 'completed':
+        return 'Payment confirmed, preparing your order';
+      case 'packaged':
+        return 'Your items are being packaged';
+      case 'shipped':
+        return 'Your order is on the way';
+      case 'delivered':
+        return 'Order delivered successfully';
+      default:
+        return 'Processing your order';
+    }
+  };
+
+  const statusSteps = ['pending', 'completed', 'packaged', 'shipped', 'delivered'];
   const currentStepIndex = order ? statusSteps.indexOf(order.status) : -1;
+
+  const getItems = (items: any) => {
+    try {
+      if (Array.isArray(items)) {
+        return items;
+      }
+      
+      if (typeof items === 'string') {
+        return JSON.parse(items);
+      }
+      
+      return [];
+    } catch (error) {
+      console.error("Error parsing items:", error);
+      return [];
+    }
+  };
 
   if (loading) {
     return (
@@ -96,10 +131,19 @@ const OrderTracking = () => {
   }
 
   if (!order) {
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
+        <h2 className="text-3xl font-bold mb-4">Order Not Found</h2>
+        <p className="text-muted-foreground mb-8">The order you're looking for doesn't exist.</p>
+        <Button onClick={() => navigate('/order-history')}>
+          Back to Orders
+        </Button>
+      </div>
+    );
   }
 
-  const items = JSON.parse(order.items);
+  const items = getItems(order.items);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -136,18 +180,26 @@ const OrderTracking = () => {
                       )}
                     </div>
                     <div className="flex-1 pb-4">
-                      <p className={`font-semibold capitalize ${
-                        isCurrent ? 'text-primary' : ''
-                      }`}>
-                        {step === 'completed' ? 'Payment Completed' : step}
-                      </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className={`font-semibold capitalize ${
+                          isCurrent ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'
+                        }`}>
+                          {step === 'completed' ? 'Payment Completed' : step}
+                        </p>
+                        {isCurrent && (
+                          <Badge variant="secondary" className="bg-primary/20 text-primary">
+                            Current
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        {isCompleted 
-                          ? isCurrent 
-                            ? 'Current status' 
-                            : 'Completed'
-                          : 'Pending'}
+                        {getStatusDescription(step)}
                       </p>
+                      {isCompleted && order.updated_at && index === currentStepIndex && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Updated: {new Date(order.updated_at).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
@@ -159,25 +211,38 @@ const OrderTracking = () => {
           <Card className="p-6">
             <h2 className="text-2xl font-bold mb-4">Order Items</h2>
             <div className="space-y-4">
-              {items.map((item: any, index: number) => (
-                <div key={index} className="flex gap-4 pb-4 border-b last:border-0">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    {item.variant && (
-                      <p className="text-sm text-muted-foreground capitalize">{item.variant}</p>
-                    )}
-                    <p className="text-sm text-muted-foreground">{item.size}</p>
-                    <p className="text-sm font-semibold mt-1">
-                      {formatPrice(item.price)} × {item.quantity}
-                    </p>
+              {items.length > 0 ? (
+                items.map((item: any, index: number) => (
+                  <div key={index} className="flex gap-4 pb-4 border-b last:border-0">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      {item.variant && (
+                        <p className="text-sm text-muted-foreground capitalize">{item.variant}</p>
+                      )}
+                      {item.size && (
+                        <p className="text-sm text-muted-foreground">Size: {item.size}</p>
+                      )}
+                      <p className="text-sm font-semibold mt-1">
+                        {formatPrice(item.price)} × {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  No items found in this order
+                </p>
+              )}
             </div>
           </Card>
         </div>
@@ -203,9 +268,17 @@ const OrderTracking = () => {
               </div>
               <div>
                 <p className="text-muted-foreground">Payment Status</p>
-                <Badge className="mt-1">
+                <Badge className={`mt-1 ${
+                  order.payment_status === 'paid' 
+                    ? 'bg-green-500' 
+                    : 'bg-yellow-500'
+                }`}>
                   {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
                 </Badge>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Payment Reference</p>
+                <p className="font-mono text-xs break-all">{order.payment_reference}</p>
               </div>
             </div>
           </Card>
@@ -213,9 +286,14 @@ const OrderTracking = () => {
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
             <div className="space-y-1 text-sm">
-              <p>{order.delivery_address}</p>
-              <p>{order.delivery_city}, {order.delivery_state}</p>
-              <p className="mt-3 text-muted-foreground">Phone: {order.phone_number}</p>
+              <p className="font-semibold">{order.delivery_address}</p>
+              <p className="text-muted-foreground">{order.delivery_city}, {order.delivery_state}</p>
+              <div className="mt-3 space-y-1">
+                <p className="text-muted-foreground">Phone: {order.phone_number}</p>
+                {order.whatsapp_number && (
+                  <p className="text-muted-foreground">WhatsApp: {order.whatsapp_number}</p>
+                )}
+              </div>
             </div>
           </Card>
 

@@ -19,6 +19,7 @@ import AffiliateDashboard from "./pages/AffiliateDashboard";
 import OrderHistory from "./pages/OrderHistory";
 import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
+import OrderSuccess from "./pages/OrderSuccess";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
 
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/affiliate-rules" element={<AffiliateRules />} />
               <Route path="/affiliate-dashboard" element={<AffiliateDashboard />} />
               <Route path="/order-history" element={<OrderHistory />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

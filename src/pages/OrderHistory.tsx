@@ -21,26 +21,35 @@ const OrderHistory = () => {
         return;
       }
 
-      fetchOrders();
+      fetchOrders(session.user.id);
     };
 
     checkAuth();
   }, [navigate]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (userId: string) => {
     try {
+      console.log("Fetching orders for user:", userId);
+
       const { data, error } = await supabase
         .from('orders')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Fetched orders:", data);
       setOrders(data || []);
     } catch (error: any) {
+      console.error("Fetch orders error:", error);
       toast({
         title: "Error",
-        description: "Failed to load order history",
-        variant: "destructive"
+        description: "Failed to load order history.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -67,6 +76,26 @@ const OrderHistory = () => {
     }
   };
 
+  const getItemsCount = (items: any) => {
+    try {
+      // Check if items is already an array (from our checkout) or needs parsing
+      if (Array.isArray(items)) {
+        return items.length;
+      }
+      
+      // Try to parse as JSON if it's a string
+      if (typeof items === 'string') {
+        const parsedItems = JSON.parse(items);
+        return Array.isArray(parsedItems) ? parsedItems.length : 0;
+      }
+      
+      return 0;
+    } catch (error) {
+      console.error("Error parsing items:", error);
+      return 0;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[50vh]">
@@ -74,6 +103,8 @@ const OrderHistory = () => {
       </div>
     );
   }
+
+  console.log("Current orders state:", orders);
 
   if (orders.length === 0) {
     return (
@@ -111,7 +142,7 @@ const OrderHistory = () => {
                   })}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {JSON.parse(order.items).length} item(s) • {formatPrice(order.total)}
+                  {getItemsCount(order.items)} item(s) • {formatPrice(order.total)}
                 </p>
                 {order.affiliate_code && (
                   <p className="text-sm text-green-600 mt-1">
