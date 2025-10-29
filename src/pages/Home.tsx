@@ -217,6 +217,9 @@ const Home = () => {
             </div>
           </div>
         </div>
+          <Button asChild size="lg" className="text-lg px-8 mt-20 flex justify-center items-center ml-20 mr-20" >
+            <Link to="/contact">Submit a Review</Link>
+          </Button>
       </section>
 
       {/* Why Choose Us Section */}
