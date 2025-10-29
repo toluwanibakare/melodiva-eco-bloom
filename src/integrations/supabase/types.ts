@@ -159,6 +159,107 @@ export type Database = {
         }
         Relationships: []
       }
+      order_status_history: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          affiliate_code: string | null
+          affiliate_id: string | null
+          created_at: string
+          delivery_address: string
+          delivery_city: string
+          delivery_fee: number
+          delivery_state: string
+          discount: number
+          id: string
+          items: Json
+          order_number: string
+          payment_reference: string | null
+          payment_status: string
+          phone_number: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          affiliate_code?: string | null
+          affiliate_id?: string | null
+          created_at?: string
+          delivery_address: string
+          delivery_city: string
+          delivery_fee: number
+          delivery_state: string
+          discount?: number
+          id?: string
+          items: Json
+          order_number: string
+          payment_reference?: string | null
+          payment_status?: string
+          phone_number: string
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          affiliate_code?: string | null
+          affiliate_id?: string | null
+          created_at?: string
+          delivery_address?: string
+          delivery_city?: string
+          delivery_fee?: number
+          delivery_state?: string
+          discount?: number
+          id?: string
+          items?: Json
+          order_number?: string
+          payment_reference?: string | null
+          payment_status?: string
+          phone_number?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string
@@ -239,7 +340,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_number: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
