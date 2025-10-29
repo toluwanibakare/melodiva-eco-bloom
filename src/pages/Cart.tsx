@@ -97,9 +97,8 @@ const Cart = () => {
   const subtotal = getTotal();
   const discountAmount = affiliateDiscount;
   const subtotalAfterDiscount = subtotal - discountAmount;
-  const interest = subtotalAfterDiscount * 0.02;
   const deliveryFee = 1500; // Default to non-Lagos, will be calculated properly later
-  const total = subtotalAfterDiscount + interest + deliveryFee;
+  const total = subtotalAfterDiscount + deliveryFee;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -214,10 +213,6 @@ const Cart = () => {
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Interest (2%)</span>
-                <span>{formatPrice(interest)}</span>
-              </div>
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Delivery Fee</span>
                 <span>{formatPrice(deliveryFee)}</span>

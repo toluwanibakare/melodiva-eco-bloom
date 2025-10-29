@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Package } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -100,6 +100,10 @@ const Header = () => {
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/order-history')} className="cursor-pointer">
+                    <Package className="h-4 w-4 mr-2" />
+                    Order History
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -137,6 +141,10 @@ const Header = () => {
                       <Button onClick={() => navigate('/profile')} variant="outline" className="w-full">
                         <User className="h-4 w-4 mr-2" />
                         Profile
+                      </Button>
+                      <Button onClick={() => navigate('/order-history')} variant="outline" className="w-full">
+                        <Package className="h-4 w-4 mr-2" />
+                        Order History
                       </Button>
                       <Button onClick={handleSignOut} variant="outline" className="w-full">
                         <LogOut className="h-4 w-4 mr-2" />
