@@ -105,6 +105,8 @@ export type Database = {
           id: string
           rules_agreed_at: string
           total_commission: number
+          total_commissions: number | null
+          total_referrals: number | null
           total_withdrawn: number
           updated_at: string
           user_id: string
@@ -117,6 +119,8 @@ export type Database = {
           id?: string
           rules_agreed_at?: string
           total_commission?: number
+          total_commissions?: number | null
+          total_referrals?: number | null
           total_withdrawn?: number
           updated_at?: string
           user_id: string
@@ -129,6 +133,8 @@ export type Database = {
           id?: string
           rules_agreed_at?: string
           total_commission?: number
+          total_commissions?: number | null
+          total_referrals?: number | null
           total_withdrawn?: number
           updated_at?: string
           user_id?: string
@@ -260,6 +266,45 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          base_price: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          stock: number
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          stock?: number
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          stock?: number
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string
@@ -341,6 +386,11 @@ export type Database = {
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }
+      is_admin: { Args: { user_email: string }; Returns: boolean }
+      update_affiliate_stats: {
+        Args: { p_affiliate_id: string; p_commission_amount: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

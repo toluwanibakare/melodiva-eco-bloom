@@ -159,7 +159,7 @@ const Home = () => {
                 </div>
               </div>
               <p className="text-muted-foreground mb-4 italic">
-                "The black soap has transformed my skin! I've been using the Exquisite variant for a month and my skin has never felt smoother. Highly recommend!"
+                "Melodiva's black soap has really transformed my skin! I've been using the Exquisite variant for a month and my skin has never felt smoother. Highly recommend!"
               </p>
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
@@ -253,7 +253,7 @@ const Home = () => {
                 <div className="text-4xl mb-4">🎁</div>
                 <h3 className="text-xl font-semibold mb-2">Exclusive Rewards</h3>
                 <p className="text-muted-foreground">
-                  Join our affiliate program and earn while sharing products you love
+                  Join our affiliate program and earn when users buy products using your unique code.
                 </p>
               </div>
             </div>

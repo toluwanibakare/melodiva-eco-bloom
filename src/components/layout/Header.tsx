@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/store/cartStore';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,19 @@ const Header = () => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+
+  const adminEmails = useMemo(() => {
+    return (import.meta.env.VITE_ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+  }, []);
+
+  const isAdmin = useMemo(() => {
+    if (!user?.email) return false;
+    if (adminEmails.length === 0) return true;
+    return adminEmails.includes(user.email.toLowerCase());
+  }, [user, adminEmails]);
 
   useEffect(() => {
     // Check current session
@@ -43,6 +56,7 @@ const Header = () => {
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Contact', href: '/contact' },
+    ...(isAdmin ? [{ name: 'Admin', href: '/admin' }] : []),
   ];
 
   return (
@@ -104,6 +118,12 @@ const Header = () => {
                     <Package className="h-4 w-4 mr-2" />
                     Order History
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
