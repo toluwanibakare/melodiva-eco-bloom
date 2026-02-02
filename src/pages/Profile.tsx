@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,45 +31,41 @@ export default function Profile() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
 
       // Fetch profile data
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (error) {
+      try {
+        const profileData = await api.getProfile();
+        if (profileData) {
+          setProfile({
+            full_name: profileData.full_name,
+            email: profileData.email,
+            phone_number: profileData.phone_number,
+            whatsapp_number: profileData.whatsapp_number || "",
+            address: profileData.address,
+            state: profileData.state,
+            city: profileData.city
+          });
+        }
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not load profile data",
           variant: "destructive"
         });
-      } else if (profileData) {
-        setProfile({
-          full_name: profileData.full_name,
-          email: profileData.email,
-          phone_number: profileData.phone_number,
-          whatsapp_number: profileData.whatsapp_number || "",
-          address: profileData.address,
-          state: profileData.state,
-          city: profileData.city
-        });
       }
 
       // Check if user is an affiliate
-      const { data: affiliate } = await supabase
-        .from('affiliates')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      setIsAffiliate(!!affiliate);
+      try {
+        const { isAffiliate: isAff } = await api.checkAffiliate();
+        setIsAffiliate(isAff);
+      } catch (error) {
+        setIsAffiliate(false);
+      }
 
       setLoading(false);
     };
@@ -100,48 +96,20 @@ export default function Profile() {
 
     setUpdating(true);
     try {
-      // Verify old password by attempting to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: profile.email,
-        password: passwordData.oldPassword
+      await api.changePassword(passwordData.oldPassword, passwordData.newPassword);
+      toast({
+        title: "Success!",
+        description: "Password updated successfully",
       });
-
-      if (signInError) {
-        toast({
-          title: "Error",
-          description: "Old password is incorrect",
-          variant: "destructive"
-        });
-        setUpdating(false);
-        return;
-      }
-
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: passwordData.newPassword
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
       });
-
-      if (updateError) {
-        toast({
-          title: "Error",
-          description: updateError.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: "Password updated successfully",
-        });
-        setPasswordData({
-          oldPassword: "",
-          newPassword: "",
-          confirmPassword: ""
-        });
-      }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update password",
         variant: "destructive"
       });
     } finally {

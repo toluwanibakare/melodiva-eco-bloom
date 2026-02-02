@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/store/cartStore';
-import { supabase } from '@/integrations/supabase/client';
+import { api, auth } from '@/lib/api';
 import { useState, useEffect, useMemo } from 'react';
 import {
   DropdownMenu,
@@ -35,20 +35,18 @@ const Header = () => {
 
   useEffect(() => {
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await api.signOut();
     navigate('/');
   };
 

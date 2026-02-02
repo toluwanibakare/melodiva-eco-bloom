@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api, auth } from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -88,7 +88,7 @@ const Checkout = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (!session) {
         navigate('/auth');
         return;
@@ -97,19 +97,18 @@ const Checkout = () => {
       setUser(session.user);
 
       // Fetch user profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (profileData) {
-        setProfile(profileData);
-        setDeliveryAddress(profileData.address || '');
-        setDeliveryState(profileData.state || '');
-        setDeliveryCity(profileData.city || '');
-        setPhoneNumber(profileData.phone_number || '');
-        setWhatsappNumber(profileData.whatsapp_number || '');
+      try {
+        const profileData = await api.getProfile();
+        if (profileData) {
+          setProfile(profileData);
+          setDeliveryAddress(profileData.address || '');
+          setDeliveryState(profileData.state || '');
+          setDeliveryCity(profileData.city || '');
+          setPhoneNumber(profileData.phone_number || '');
+          setWhatsappNumber(profileData.whatsapp_number || '');
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
       }
 
       setLoading(false);
@@ -117,15 +116,13 @@ const Checkout = () => {
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate('/auth');
       } else {
         setUser(session.user);
       }
     });
-
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const formatPrice = (price: number) => {
@@ -275,18 +272,15 @@ const Checkout = () => {
         subtotal: paymentDetails.subtotal
       });
 
-      // First, create the order
-      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-        user_id: user.id,
+      // Create the order
+      const orderData = await api.createOrder({
         order_number: orderNumber,
         items: orderItems,
         subtotal: paymentDetails.subtotal,
         discount: paymentDetails.discount,
         delivery_fee: paymentDetails.deliveryFee,
         total: paymentDetails.total,
-        affiliate_code: affiliateCode || null,
-        discount: paymentDetails.discount,
-        subtotal: paymentDetails.subtotal + paymentDetails.discount,
+        affiliate_code: affiliateCode || undefined,
         delivery_address: deliveryAddress,
         delivery_state: deliveryState,
         delivery_city: deliveryCity,
@@ -295,20 +289,11 @@ const Checkout = () => {
         payment_reference: response.reference,
         payment_status: "paid",
         status: "pending",
-      }).select('id, order_number').single();
+      });
 
-      if (orderError) {
-        console.error("Order save error:", orderError);
-        throw orderError;
-      }
-
-      orderId = orderData.id;
+      orderId = orderData.order.id;
+      orderNumber = orderData.order.order_number;
       console.log("Order saved successfully:", orderData);
-
-      // If there's a valid referral code, find the affiliate and create referral record
-      if (affiliateCode && paymentDetails.discount > 0) {
-        await handleAffiliateReferral(affiliateCode, orderData.order_number, orderData.id, paymentDetails.discount);
-      }
 
       // Clear cart after successful order
       clearCart();
@@ -339,103 +324,7 @@ const Checkout = () => {
     }
   };
 
-  const handleAffiliateReferral = async (referralCode: string, orderNumber: string, orderId: string, discount: number) => {
-    try {
-      console.log("Processing affiliate referral:", { referralCode, orderNumber, orderId, discount });
-
-      // First, find the affiliate by their referral code
-      const { data: affiliateData, error: affiliateError } = await supabase
-        .from('affiliates')
-        .select('id, user_id, commission_rate')
-        .eq('referral_code', referralCode)
-        .single();
-
-      if (affiliateError || !affiliateData) {
-        console.error("Affiliate not found for code:", referralCode, affiliateError);
-        return;
-      }
-
-      console.log("Found affiliate:", affiliateData);
-
-      // Calculate commission (you can adjust this logic based on your business rules)
-      // For example: 10% of the discount amount or a fixed percentage of the order total
-      const commissionAmount = calculateCommission(discount, affiliateData.commission_rate);
-
-      // Create the affiliate referral record
-      const { data: referralData, error: referralError } = await supabase
-        .from("affiliate_referrals")
-        .insert({
-          affiliate_id: affiliateData.id,
-          referred_user_id: user.id,
-          order_id: orderNumber, // Using order_number as order_id since your table expects TEXT
-          commission_amount: commissionAmount,
-          status: 'completed', // or 'pending' depending on when you pay out commissions
-        })
-        .select();
-
-      if (referralError) {
-        console.error("Affiliate referral tracking error:", referralError);
-        // Don't throw error here - we don't want referral tracking failure to block the order
-      } else {
-        console.log("Affiliate referral tracked successfully:", referralData);
-        
-        // Update affiliate's stats (total commissions, etc.)
-        await updateAffiliateStats(affiliateData.id, commissionAmount);
-      }
-
-    } catch (error) {
-      console.error("Error in affiliate referral tracking:", error);
-    }
-  };
-
-  const calculateCommission = (discount: number, commissionRate: number | null) => {
-    // Default commission rate if not specified
-    const rate = commissionRate || 10; // 10% default
-    
-    // Calculate commission based on your business logic
-    // Example: 10% of the discount amount given to customer
-    return (discount * rate) / 100;
-  };
-
-  const updateAffiliateStats = async (affiliateId: string, commissionAmount: number) => {
-  try {
-    // Step 1: Fetch current stats
-    const { data: current, error: fetchError } = await supabase
-      .from('affiliates')
-      .select('total_commissions, total_referrals, balance')
-      .eq('id', affiliateId)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching affiliate stats:", fetchError);
-      return;
-    }
-
-    // Step 2: Calculate new totals
-    const newTotalCommissions = (current?.total_commissions || 0) + commissionAmount;
-    const newTotalReferrals = (current?.total_referrals || 0) + 1;
-    const newBalance = (current?.balance || 0) + commissionAmount;
-
-    // Step 3: Update affiliate record
-    const { error: updateError } = await supabase
-      .from('affiliates')
-      .update({
-        total_commissions: newTotalCommissions,
-        total_referrals: newTotalReferrals,
-        balance: newBalance,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', affiliateId);
-
-    if (updateError) {
-      console.error("Failed to update affiliate stats:", updateError);
-    } else {
-      console.log("Affiliate stats updated successfully");
-    }
-  } catch (error) {
-    console.error("Error updating affiliate stats:", error);
-  }
-};
+  // Affiliate referral is now handled automatically by the backend
 
 
   if (loading) {

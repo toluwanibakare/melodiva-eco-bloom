@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,20 +27,28 @@ export default function AffiliateDashboard() {
 
   useEffect(() => {
     const checkAffiliateStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
 
-      // Fetch affiliate data
-      const { data: affiliate, error } = await supabase
-        .from('affiliates')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
+      // Fetch affiliate dashboard data
+      try {
+        const dashboardData = await api.getAffiliateDashboard();
+        if (!dashboardData.affiliate) {
+          toast({
+            title: "Not an Affiliate",
+            description: "Please register for the affiliate program first",
+            variant: "destructive"
+          });
+          navigate("/affiliate");
+          return;
+        }
 
-      if (error || !affiliate) {
+        setAffiliateData(dashboardData.affiliate);
+        setReferralCount(dashboardData.referrals?.length || 0);
+      } catch (error: any) {
         toast({
           title: "Not an Affiliate",
           description: "Please register for the affiliate program first",
@@ -48,18 +56,6 @@ export default function AffiliateDashboard() {
         });
         navigate("/affiliate");
         return;
-      }
-
-      setAffiliateData(affiliate);
-
-      // Fetch referral count
-      const { data: referrals, error: refError } = await supabase
-        .from('affiliate_referrals')
-        .select('id')
-        .eq('affiliate_id', affiliate.id);
-
-      if (!refError && referrals) {
-        setReferralCount(referrals.length);
       }
 
       setLoading(false);
@@ -90,32 +86,13 @@ export default function AffiliateDashboard() {
   };
 
   const regenerateCode = async () => {
-    setRegenerating(true);
-    try {
-      const newCode = generateNewCode();
-      
-      const { error } = await supabase
-        .from('affiliates')
-        .update({ affiliate_code: newCode })
-        .eq('id', affiliateData.id);
-
-      if (error) throw error;
-
-      setAffiliateData({ ...affiliateData, affiliate_code: newCode });
-      
-      toast({
-        title: "Code Updated!",
-        description: `Your new affiliate code is ${newCode}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to regenerate code. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setRegenerating(false);
-    }
+    // Note: Code regeneration not available in API yet
+    // This would require a backend endpoint
+    toast({
+      title: "Not Available",
+      description: "Code regeneration is not available. Please contact support.",
+      variant: "destructive"
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -151,17 +128,12 @@ export default function AffiliateDashboard() {
 
     setWithdrawing(true);
     try {
-      const { error } = await supabase
-        .from('affiliate_withdrawals')
-        .insert([{
-          affiliate_id: affiliateData.id,
-          amount: amount,
-          bank_name: withdrawalData.bankName,
-          account_number: withdrawalData.accountNumber,
-          account_name: withdrawalData.accountName
-        }]);
-
-      if (error) throw error;
+      await api.createWithdrawal({
+        amount: amount,
+        bank_name: withdrawalData.bankName,
+        account_number: withdrawalData.accountNumber,
+        account_name: withdrawalData.accountName
+      });
 
       toast({
         title: "Withdrawal Requested!",
@@ -174,6 +146,10 @@ export default function AffiliateDashboard() {
         accountNumber: "",
         accountName: ""
       });
+      
+      // Refresh affiliate data
+      const dashboardData = await api.getAffiliateDashboard();
+      setAffiliateData(dashboardData.affiliate);
 
       // Refresh affiliate data
       const { data: updatedAffiliate } = await supabase

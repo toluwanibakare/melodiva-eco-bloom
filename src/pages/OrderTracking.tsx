@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api, auth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,34 +16,27 @@ const OrderTracking = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (!session) {
         navigate('/auth');
         return;
       }
 
-      fetchOrderDetails(session.user.id);
+      if (orderId) {
+        fetchOrderDetails();
+      }
     };
 
     checkAuth();
   }, [orderId, navigate]);
 
-  const fetchOrderDetails = async (userId: string) => {
+  const fetchOrderDetails = async () => {
+    if (!orderId) return;
+    
     try {
-      console.log("Fetching order details for order:", orderId, "user:", userId);
+      console.log("Fetching order details for order:", orderId);
 
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .eq('user_id', userId) // Ensure user can only see their own orders
-        .single();
-
-      if (orderError) {
-        console.error("Order fetch error:", orderError);
-        throw orderError;
-      }
-
+      const orderData = await api.getOrder(orderId);
       console.log("Order data:", orderData);
       setOrder(orderData);
 
@@ -51,7 +44,7 @@ const OrderTracking = () => {
       console.error("Error fetching order:", error);
       toast({
         title: "Error",
-        description: "Failed to load order details",
+        description: error.message || "Failed to load order details",
         variant: "destructive"
       });
       navigate('/order-history');

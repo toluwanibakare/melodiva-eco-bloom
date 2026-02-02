@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api, auth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,40 +15,28 @@ const OrderHistory = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (!session) {
         navigate('/auth');
         return;
       }
 
-      fetchOrders(session.user.id);
+      fetchOrders();
     };
 
     checkAuth();
   }, [navigate]);
 
-  const fetchOrders = async (userId: string) => {
+  const fetchOrders = async () => {
     try {
-      console.log("Fetching orders for user:", userId);
-
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-
+      const data = await api.getMyOrders();
       console.log("Fetched orders:", data);
-      setOrders(data || []);
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error("Fetch orders error:", error);
       toast({
         title: "Error",
-        description: "Failed to load order history.",
+        description: error.message || "Failed to load order history.",
         variant: "destructive",
       });
     } finally {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,7 @@ export default function Auth() {
     let active = true;
 
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       if (active && session && window.location.pathname !== "/auth") {
         navigate("/");
       }
@@ -61,16 +61,11 @@ export default function Auth() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
     });
-
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
   }, [navigate]);
 
 
@@ -97,41 +92,28 @@ export default function Auth() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      await api.signUp({
         email: signUpData.email,
         password: signUpData.password,
-        options: {
-          data: {
-            full_name: signUpData.fullName,
-            phone_number: signUpData.phoneNumber,
-            whatsapp_number: signUpData.whatsappNumber || signUpData.phoneNumber,
-            address: signUpData.address,
-            state: signUpData.state,
-            city: signUpData.city,
-            security_question: signUpData.securityQuestion,
-            security_answer: signUpData.securityAnswer.toLowerCase()
-          },
-          emailRedirectTo: `${window.location.origin}/`
-        }
+        full_name: signUpData.fullName,
+        phone_number: signUpData.phoneNumber,
+        whatsapp_number: signUpData.whatsappNumber || signUpData.phoneNumber,
+        address: signUpData.address,
+        state: signUpData.state,
+        city: signUpData.city,
+        security_question: signUpData.securityQuestion,
+        security_answer: signUpData.securityAnswer.toLowerCase()
       });
 
-      if (error) {
-        toast({
-          title: "Sign Up Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: "Account created successfully. You're now logged in.",
-        });
-        navigate("/");
-      }
+      toast({
+        title: "Success!",
+        description: "Account created successfully. You're now logged in.",
+      });
+      navigate("/");
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Sign Up Failed",
+        description: error.message || "Failed to create account",
         variant: "destructive"
       });
     } finally {
@@ -144,28 +126,16 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: signInData.email,
-        password: signInData.password
+      await api.signIn(signInData.email, signInData.password);
+      toast({
+        title: "Welcome Back!",
+        description: "You've been signed in successfully.",
       });
-
-      if (error) {
-        toast({
-          title: "Sign In Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Welcome Back!",
-          description: "You've been signed in successfully.",
-        });
-        navigate("/");
-      }
+      navigate("/");
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Sign In Failed",
+        description: error.message || "Invalid email or password",
         variant: "destructive"
       });
     } finally {
@@ -201,67 +171,34 @@ export default function Auth() {
 
     setLoading(true);
     try {
-      // Get user profile to verify security answer
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('security_question, security_answer, user_id')
-        .eq('email', forgotPasswordData.email)
-        .eq('full_name', forgotPasswordData.fullName)
-        .eq('security_question', forgotPasswordData.securityQuestion);
-
-      if (profileError || !profiles || profiles.length === 0) {
-        toast({
-          title: "Error",
-          description: "Could not find account with provided information",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      const profile = profiles[0];
-      
-      // Verify security answer (case-insensitive)
-      if (profile.security_answer.toLowerCase() !== forgotPasswordData.securityAnswer.toLowerCase()) {
-        toast({
-          title: "Error",
-          description: "Security answer is incorrect",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Send password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordData.email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`
+      // Verify security question and get reset token
+      const { resetToken } = await api.forgotPasswordVerify({
+        email: forgotPasswordData.email,
+        full_name: forgotPasswordData.fullName,
+        security_question: forgotPasswordData.securityQuestion,
+        security_answer: forgotPasswordData.securityAnswer
       });
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: "Password reset link has been sent to your email",
-        });
-        setForgotPasswordOpen(false);
-        setForgotPasswordData({
-          email: "",
-          fullName: "",
-          securityQuestion: "",
-          securityAnswer: "",
-          newPassword: "",
-          confirmPassword: ""
-        });
-      }
+      // Reset password with the token
+      await api.forgotPasswordReset(resetToken, forgotPasswordData.newPassword);
+
+      toast({
+        title: "Success!",
+        description: "Password has been reset successfully",
+      });
+      setForgotPasswordOpen(false);
+      setForgotPasswordData({
+        email: "",
+        fullName: "",
+        securityQuestion: "",
+        securityAnswer: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to reset password",
         variant: "destructive"
       });
     } finally {
@@ -371,8 +308,28 @@ export default function Auth() {
                         required
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="forgot-new-password">New Password</Label>
+                      <Input
+                        id="forgot-new-password"
+                        type="password"
+                        value={forgotPasswordData.newPassword}
+                        onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, newPassword: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="forgot-confirm-password">Confirm New Password</Label>
+                      <Input
+                        id="forgot-confirm-password"
+                        type="password"
+                        value={forgotPasswordData.confirmPassword}
+                        onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, confirmPassword: e.target.value })}
+                        required
+                      />
+                    </div>
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Verifying..." : "Reset Password"}
+                      {loading ? "Resetting..." : "Reset Password"}
                     </Button>
                   </form>
                 </DialogContent>

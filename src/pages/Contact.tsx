@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -21,16 +21,7 @@ export default function ContactPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .insert([{
-          name: formData.name,
-          email: formData.email,
-          message: formData.message
-        }]);
-
-      if (error) throw error;
-
+      await api.submitContactMessage(formData);
       toast({
         title: "Message Sent!",
         description: "We'll get back to you as soon as possible.",
@@ -52,17 +43,12 @@ export default function ContactPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('reviews')
-        .insert([{
-          name: review.isAnonymous ? "Anonymous" : review.name,
-          rating: parseInt(review.rating),
-          comment: review.comment,
-          is_anonymous: review.isAnonymous
-        }]);
-
-      if (error) throw error;
-
+      await api.submitReview({
+        name: review.name,
+        rating: parseInt(review.rating),
+        comment: review.comment,
+        is_anonymous: review.isAnonymous
+      });
       toast({
         title: "Review Submitted!",
         description: review.isAnonymous 

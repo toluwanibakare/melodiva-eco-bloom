@@ -5,7 +5,7 @@ import { DollarSign, Users, TrendingUp, ArrowLeft, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 const Affiliate = () => {
@@ -19,20 +19,19 @@ const Affiliate = () => {
 
   useEffect(() => {
     const checkUserStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await auth.getSession();
       setUser(session?.user || null);
 
       if (session?.user) {
         // Check if already an affiliate
-        const { data: affiliate } = await supabase
-          .from('affiliates')
-          .select('id')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (affiliate) {
-          setIsAffiliate(true);
-          navigate('/affiliate-dashboard');
+        try {
+          const { isAffiliate: isAff } = await api.checkAffiliate();
+          if (isAff) {
+            setIsAffiliate(true);
+            navigate('/affiliate-dashboard');
+          }
+        } catch (error) {
+          // Not an affiliate
         }
       }
       setChecking(false);
@@ -72,18 +71,7 @@ const Affiliate = () => {
 
     setLoading(true);
     try {
-      const affiliateCode = generateAffiliateCode();
-      
-      const { error } = await supabase
-        .from('affiliates')
-        .insert([{
-          user_id: user.id,
-          affiliate_code: affiliateCode,
-          commission_rate: 10.0
-        }]);
-
-      if (error) throw error;
-
+      const { affiliate_code } = await api.joinAffiliate();
       toast({
         title: "Success!",
         description: "You're now part of the affiliate program!",

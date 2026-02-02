@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth } from "@/lib/api";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -89,11 +89,11 @@ const AdminPanel = () => {
 
   useEffect(() => {
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      const email = data.session?.user.email?.toLowerCase() ?? null;
+      const { data: { session } } = await auth.getSession();
+      const email = session?.user.email?.toLowerCase() ?? null;
       setSessionEmail(email);
 
-      if (!data.session) {
+      if (!session) {
         navigate("/auth");
         return;
       }
@@ -119,38 +119,25 @@ const AdminPanel = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersRes, profilesRes, historyRes, productsRes] =
+      const [ordersData, profilesData, historyData, productsData] =
         await Promise.all([
-          supabase.from("orders").select("*").order("created_at", {
-            ascending: false,
-          }),
-          supabase.from("profiles").select("*").order("created_at", {
-            ascending: false,
-          }),
-          supabase.from("order_status_history").select("*").order("created_at", {
-            ascending: false,
-          }),
-          supabase.from("products").select("*").order("created_at", {
-            ascending: false,
-          }),
+          api.getAdminOrders(),
+          api.getAdminProfiles(),
+          api.getAdminOrderHistory(),
+          api.getAdminProducts().catch(() => [])
         ]);
 
-      if (ordersRes.error) throw ordersRes.error;
-      if (profilesRes.error) throw profilesRes.error;
-      if (historyRes.error) throw historyRes.error;
-
-      if (productsRes.error) {
-        setProductError(
-          "Products table not found in Supabase. Create it to enable product management."
-        );
-      } else {
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      setProfiles(Array.isArray(profilesData) ? profilesData : []);
+      
+      if (Array.isArray(productsData)) {
         setProductError(null);
-        setProducts(productsRes.data ?? []);
+        setProducts(productsData);
+      } else {
+        setProductError("Products table not found. Create it to enable product management.");
       }
 
-      setOrders(ordersRes.data ?? []);
-      setProfiles(profilesRes.data ?? []);
-      const grouped = (historyRes.data ?? []).reduce(
+      const grouped = (Array.isArray(historyData) ? historyData : []).reduce(
         (acc: Record<string, StatusHistoryRow[]>, item: StatusHistoryRow) => {
           if (!acc[item.order_id]) acc[item.order_id] = [];
           acc[item.order_id].push(item);
@@ -198,24 +185,11 @@ const AdminPanel = () => {
 
     try {
       const { status, note, payment_status } = update;
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          status,
-          payment_status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", orderId);
-
-      if (error) throw error;
-
-      if (note || status) {
-        await supabase.from("order_status_history").insert({
-          order_id: orderId,
-          status,
-          notes: note || `Updated by ${sessionEmail ?? "admin"}`,
-        });
-      }
+      await api.updateOrder(orderId, {
+        status,
+        payment_status,
+        note: note || `Updated by ${sessionEmail ?? "admin"}`
+      });
 
       toast({ title: "Order updated" });
       await fetchData();
@@ -243,23 +217,19 @@ const AdminPanel = () => {
     setSavingProduct(true);
     try {
       const payload = {
-        name: productForm.name,
-        type: productForm.type,
+        name: productForm.name!,
+        type: productForm.type!,
         description: productForm.description,
         price: Number(productForm.price),
         stock: Number(productForm.stock),
         image_url: productForm.image_url,
       };
 
-      const query = productForm.id
-        ? supabase
-            .from("products")
-            .update(payload)
-            .eq("id", productForm.id)
-        : supabase.from("products").insert(payload);
-
-      const { error } = await query;
-      if (error) throw error;
+      if (productForm.id) {
+        await api.updateProduct(productForm.id, payload);
+      } else {
+        await api.createProduct(payload);
+      }
 
       toast({ title: "Product saved" });
       resetProductForm();
@@ -284,11 +254,7 @@ const AdminPanel = () => {
   const deleteProduct = async (id?: string) => {
     if (!id) return;
     try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+      await api.deleteProduct(id);
       toast({ title: "Product removed" });
       await fetchData();
     } catch (error: any) {
