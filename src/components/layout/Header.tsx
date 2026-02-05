@@ -79,7 +79,7 @@ const Header = () => {
               alt="Melodiva Logo"
               className="h-12 w-auto object-contain"
             />
-            <span className="text-xl font-bold text-foreground">Melodiva Skincare</span>
+            <span className="text-xl font-bold text-foreground">Melodiva Skin Care</span>
           </Link>
 
           {/* Navigation links (desktop) */}

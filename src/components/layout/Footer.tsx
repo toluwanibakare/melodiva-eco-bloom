@@ -10,7 +10,7 @@ const Footer = () => {
           <div className="animate-fade-in">
             <div className="flex items-center space-x-2 mb-4">
               <Leaf className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold text-white">Melodiva Skincare</span>
+              <span className="text-lg font-bold text-white">Melodiva Skin Care</span>
             </div>
             <p className="text-sm text-white/70">
               Your trusted source for pure natural Skin Care products. We believe in the power of nature to enhance your beauty.
@@ -89,7 +89,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-primary/20 mt-8 pt-8 text-center text-sm text-white/60">
-          <p>&copy; {new Date().getFullYear()} Melodiva Skincare. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Melodiva Skin Care. All rights reserved.</p>
         </div>
       </div>
     </footer>

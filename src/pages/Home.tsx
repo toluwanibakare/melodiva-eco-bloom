@@ -158,7 +158,7 @@ const Home = () => {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Our Products</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience the transformative power of our carefully crafted natural skincare products
+              Experience the transformative power of our carefully crafted natural skin care products
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">

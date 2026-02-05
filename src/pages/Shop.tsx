@@ -20,18 +20,18 @@ const Shop = () => {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
   const filteredProducts = products
-  .filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !selectedType || product.type === selectedType;
-    const matchesVariant =
-      !selectedVariant ||
-      product.variants?.some((v) => v.variant === selectedVariant);
+    .filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = !selectedType || product.type === selectedType;
+      const matchesVariant =
+        !selectedVariant ||
+        product.variants?.some((v) => v.variant === selectedVariant);
 
-    return matchesSearch && matchesType && matchesVariant;
-  })
-  .slice(2);
+      return matchesSearch && matchesType && matchesVariant;
+    })
+    .slice(2);
 
 
   const clearFilters = () => {
@@ -51,7 +51,7 @@ const Shop = () => {
             Our Products
           </h1>
           <p className="text-lg text-muted-foreground">
-            Discover our range of natural skincare products
+            Discover our range of natural skin care products
           </p>
         </div>
 
@@ -67,7 +67,7 @@ const Shop = () => {
               className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary"
             />
           </div>
-          
+
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="lg" className="relative h-12 px-6 hover-scale">
@@ -87,7 +87,7 @@ const Shop = () => {
                   Refine your product selection
                 </SheetDescription>
               </SheetHeader>
-              
+
               <div className="mt-6 space-y-6">
                 {/* Product Type Filter */}
                 <div>

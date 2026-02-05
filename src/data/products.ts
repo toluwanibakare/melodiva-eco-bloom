@@ -64,7 +64,7 @@ export const products: Product[] = [
     id: 'black-soap-exquisite-250g',
     name: 'Black Soap - Exquisite (250g)',
     type: 'black-soap',
-    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
+    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skin care.',
     image: bs_et250,
     basePrice: 2000,
     variants: [
@@ -80,7 +80,7 @@ export const products: Product[] = [
     id: 'black-soap-exquisite-500g',
     name: 'Black Soap - Exquisite (500g)',
     type: 'black-soap',
-    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skincare.',
+    description: 'Natural African black soap made with traditional methods. Exquisite variant with premium ingredients for luxury skin care.',
     image: bs_et500,
     basePrice: 4000,
     variants: [
@@ -97,7 +97,7 @@ export const products: Product[] = [
     id: 'black-soap-perfume-250g',
     name: 'Black Soap - Perfume (250g)',
     type: 'black-soap',
-    description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skincare routine.',
+    description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skin care routine.',
     image: bs_p250,
     basePrice: 2000,
     variants: [
@@ -113,7 +113,7 @@ export const products: Product[] = [
     id: 'black-soap-perfume-500g',
     name: 'Black Soap - Perfume (500g)',
     type: 'black-soap',
-    description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skincare routine.',
+    description: 'African black soap infused with natural fragrances. Perfect for those who love a gentle scent with their skin care routine.',
     image: bs_p500,
     basePrice: 4000,
     variants: [
