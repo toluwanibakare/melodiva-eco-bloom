@@ -26,11 +26,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-white/70 hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block">
-                  About Us
-                </Link>
-              </li>
-              <li>
                 <Link to="/affiliate" className="text-sm text-white/70 hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block">
                   Affiliate Program
                 </Link>
