@@ -56,6 +56,33 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [paystackLoaded, setPaystackLoaded] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(1500);
+
+  // Delivery Fee Logic
+  useEffect(() => {
+    const feeMap: Record<string, number> = {
+      'lagos': 1500,
+      'ogun': 2000,
+      'abuja': 3000,
+      'rivers': 3000,
+      'kano': 3500,
+      // Add more principal states here
+    };
+
+    const stateLower = deliveryState.toLowerCase().trim();
+
+    if (stateLower === '') {
+      setDeliveryFee(1500); // Default/Base
+      return;
+    }
+
+    // specific check or default for others
+    if (feeMap[stateLower]) {
+      setDeliveryFee(feeMap[stateLower]);
+    } else {
+      setDeliveryFee(4000); // Default for other states/interstate
+    }
+  }, [deliveryState]);
 
   useEffect(() => {
     // Load Paystack script
@@ -93,7 +120,7 @@ const Checkout = () => {
         navigate('/auth');
         return;
       }
-      
+
       setUser(session.user);
 
       // Fetch user profile
@@ -155,7 +182,7 @@ const Checkout = () => {
 
     const subtotal = getTotal();
     const discount = affiliateDiscount;
-    const deliveryFee = 1500;
+    // deliveryFee is now from state
     const total = subtotal - discount + deliveryFee;
     const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -288,7 +315,7 @@ const Checkout = () => {
         whatsapp_number: whatsappNumber,
         payment_reference: response.reference,
         payment_status: "paid",
-        status: "pending",
+        status: "processing",
       });
 
       orderId = orderData.order.id;
@@ -297,23 +324,23 @@ const Checkout = () => {
 
       // Clear cart after successful order
       clearCart();
-      
+
       toast({
         title: "Success!",
         description: `Your order #${orderNumber} was placed successfully. ${affiliateCode ? `Referral discount applied: ${formatPrice(paymentDetails.discount)}` : ''}`,
       });
-      
+
       navigate("/order-success");
-      
+
     } catch (error: any) {
       console.error("Error processing payment success:", error);
-      
+
       let errorMessage = "Payment succeeded but we encountered an issue saving your order. Please contact support.";
-      
+
       if (error.message) {
         errorMessage = `Database error: ${error.message}`;
       }
-      
+
       toast({
         title: "Order Processing Error",
         description: errorMessage,
@@ -337,7 +364,7 @@ const Checkout = () => {
 
   const subtotal = getTotal();
   const discount = affiliateDiscount;
-  const deliveryFee = 1500;
+  // deliveryFee state used
   const total = subtotal - discount + deliveryFee;
 
   return (
@@ -403,7 +430,7 @@ const Checkout = () => {
                   placeholder="080xxxxxxxx"
                 />
               </div>
-              
+
               {/* Display Referral Information */}
               {affiliateCode && (
                 <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -474,9 +501,9 @@ const Checkout = () => {
                 <span className="text-primary">{formatPrice(total)}</span>
               </div>
             </div>
-            <Button 
-              className="w-full" 
-              size="lg" 
+            <Button
+              className="w-full"
+              size="lg"
               onClick={handlePayment}
               disabled={processing || items.length === 0 || !paystackLoaded}
             >

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Trash2, ShoppingBag, Tag } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 
 const Cart = () => {
   const {
@@ -45,34 +46,36 @@ const Cart = () => {
     setApplyingCode(true);
 
     try {
-      const res = await fetch(
-        `/api/affiliates/validate?code=${codeInput.trim().toUpperCase()}`
-      );
-
-      if (!res.ok) {
-        throw new Error("Invalid code");
-      }
-
-      const data = await res.json();
+      const data = await api.verifyAffiliateCode(codeInput.trim().toUpperCase());
 
       if (!data.valid) {
         toast({
           title: "Invalid Code",
-          description: "The affiliate code you entered is not valid",
+          description: "The code you entered is not valid",
           variant: "destructive"
         });
         return;
       }
 
       const subtotal = getTotal();
-      const discount = subtotal * 0.05;
+      let discount = 0;
+      let message = "";
+
+      if (data.type === 'coupon') {
+        discount = data.value;
+        message = `Coupon applied! You saved ${formatPrice(discount)}.`;
+      } else {
+        // Affiliate code gives 5% discount
+        discount = subtotal * 0.05;
+        message = `Affiliate discount applied! You saved ${formatPrice(discount)}.`;
+      }
 
       setAffiliateCode(codeInput.trim().toUpperCase());
       setAffiliateDiscount(discount);
 
       toast({
         title: "Code Applied!",
-        description: `You've saved ${formatPrice(discount)} with this code!`,
+        description: message,
       });
     } catch {
       toast({

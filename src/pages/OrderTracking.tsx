@@ -32,7 +32,7 @@ const OrderTracking = () => {
 
   const fetchOrderDetails = async () => {
     if (!orderId) return;
-    
+
     try {
       console.log("Fetching order details for order:", orderId);
 
@@ -64,6 +64,7 @@ const OrderTracking = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
+      case 'processing':
         return <Clock className="h-6 w-6" />;
       case 'completed':
         return <CheckCircle2 className="h-6 w-6" />;
@@ -81,6 +82,7 @@ const OrderTracking = () => {
   const getStatusDescription = (status: string) => {
     switch (status) {
       case 'pending':
+      case 'processing':
         return 'Your order is being processed';
       case 'completed':
         return 'Payment confirmed, preparing your order';
@@ -95,7 +97,7 @@ const OrderTracking = () => {
     }
   };
 
-  const statusSteps = ['pending', 'completed', 'packaged', 'shipped', 'delivered'];
+  const statusSteps = ['processing', 'completed', 'packaged', 'shipped', 'delivered'];
   const currentStepIndex = order ? statusSteps.indexOf(order.status) : -1;
 
   const getItems = (items: any) => {
@@ -103,11 +105,11 @@ const OrderTracking = () => {
       if (Array.isArray(items)) {
         return items;
       }
-      
+
       if (typeof items === 'string') {
         return JSON.parse(items);
       }
-      
+
       return [];
     } catch (error) {
       console.error("Error parsing items:", error);
@@ -155,29 +157,26 @@ const OrderTracking = () => {
               {statusSteps.map((step, index) => {
                 const isCompleted = index <= currentStepIndex;
                 const isCurrent = index === currentStepIndex;
-                
+
                 return (
                   <div key={step} className="flex gap-4">
                     <div className="flex flex-col items-center">
-                      <div className={`rounded-full p-3 ${
-                        isCompleted 
-                          ? 'bg-primary text-primary-foreground' 
+                      <div className={`rounded-full p-3 ${isCompleted
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground'
-                      }`}>
+                        }`}>
                         {getStatusIcon(step)}
                       </div>
                       {index < statusSteps.length - 1 && (
-                        <div className={`w-0.5 h-12 mt-2 ${
-                          isCompleted ? 'bg-primary' : 'bg-muted'
-                        }`} />
+                        <div className={`w-0.5 h-12 mt-2 ${isCompleted ? 'bg-primary' : 'bg-muted'
+                          }`} />
                       )}
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className={`font-semibold capitalize ${
-                          isCurrent ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'
-                        }`}>
-                          {step === 'completed' ? 'Payment Completed' : step}
+                        <p className={`font-semibold capitalize ${isCurrent ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'
+                          }`}>
+                          {step === 'completed' ? 'Payment Completed' : step === 'processing' ? 'Processing' : step}
                         </p>
                         {isCurrent && (
                           <Badge variant="secondary" className="bg-primary/20 text-primary">
@@ -261,11 +260,10 @@ const OrderTracking = () => {
               </div>
               <div>
                 <p className="text-muted-foreground">Payment Status</p>
-                <Badge className={`mt-1 ${
-                  order.payment_status === 'paid' 
-                    ? 'bg-green-500' 
+                <Badge className={`mt-1 ${order.payment_status === 'paid'
+                    ? 'bg-green-500'
                     : 'bg-yellow-500'
-                }`}>
+                  }`}>
                   {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
                 </Badge>
               </div>
