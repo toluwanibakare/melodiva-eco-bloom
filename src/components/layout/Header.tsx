@@ -19,6 +19,7 @@ const Header = () => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [user, setUser] = useState<any>(null);
   const [isAffiliate, setIsAffiliate] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const adminEmails = useMemo(() => {
@@ -151,7 +152,7 @@ const Header = () => {
               </Button>
             )}
 
-            <Sheet>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
@@ -163,6 +164,7 @@ const Header = () => {
                     <Link
                       key={item.name}
                       to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className="text-lg font-bold text-foreground hover:text-primary transition-colors"
                     >
                       {item.name}
@@ -173,21 +175,27 @@ const Header = () => {
                       <div className="text-sm text-muted-foreground pt-4 border-t">
                         {user.email}
                       </div>
-                      <Button onClick={() => navigate('/profile')} variant="outline" className="w-full">
+                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} variant="outline" className="w-full">
                         <User className="h-4 w-4 mr-2" />
                         Profile
                       </Button>
-                      <Button onClick={() => navigate('/order-history')} variant="outline" className="w-full">
+                      <Button onClick={() => { navigate('/order-history'); setMobileMenuOpen(false); }} variant="outline" className="w-full">
                         <Package className="h-4 w-4 mr-2" />
                         Order History
                       </Button>
-                      <Button onClick={handleSignOut} variant="outline" className="w-full">
+                      {isAffiliate && (
+                        <Button onClick={() => { navigate('/affiliate-dashboard'); setMobileMenuOpen(false); }} variant="outline" className="w-full">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Affiliate Dashboard
+                        </Button>
+                      )}
+                      <Button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} variant="outline" className="w-full">
                         <LogOut className="h-4 w-4 mr-2" />
                         Sign Out
                       </Button>
                     </>
                   ) : (
-                    <Button asChild className="w-full">
+                    <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
                       <Link to="/auth">Sign In</Link>
                     </Button>
                   )}
