@@ -200,7 +200,7 @@ router.get('/affiliates', async (req, res) => {
   try {
     const [affiliates] = await pool.execute(
       `SELECT a.id, a.user_id, a.affiliate_code, a.commission_rate, a.total_commission,
-              a.current_balance, a.total_withdrawn, a.created_at,
+              a.current_balance, a.total_withdrawn, a.is_active, a.created_at,
               u.full_name, u.email, u.phone_number
        FROM affiliates a
        JOIN users u ON a.user_id = u.id
@@ -211,6 +211,43 @@ router.get('/affiliates', async (req, res) => {
   } catch (error) {
     console.error('Get admin affiliates error:', error);
     res.status(500).json({ error: 'Failed to get affiliates' });
+  }
+});
+
+router.put('/affiliates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { commission_rate, is_active } = req.body;
+
+    const updates = [];
+    const values = [];
+
+    if (commission_rate !== undefined) {
+      updates.push('commission_rate = ?');
+      values.push(commission_rate);
+    }
+
+    if (is_active !== undefined) {
+      updates.push('is_active = ?');
+      values.push(is_active);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    updates.push('updated_at = NOW()');
+    values.push(id);
+
+    await pool.execute(
+      `UPDATE affiliates SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    res.json({ message: 'Affiliate updated successfully' });
+  } catch (error) {
+    console.error('Update affiliate error:', error);
+    res.status(500).json({ error: 'Failed to update affiliate' });
   }
 });
 
