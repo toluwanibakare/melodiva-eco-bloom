@@ -32,6 +32,22 @@ import {
   RefreshCw,
   Users,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
+
+// Colors for Pie Chart
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 interface OrderRow {
   id: string;
@@ -86,7 +102,7 @@ type OrderUpdateState = {
 };
 
 const ORDER_STATUSES = [
-  "pending",
+  "processing",
   "packaged",
   "shipped",
   "delivered",
@@ -131,6 +147,34 @@ const AdminPanel = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to update withdrawal",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleAffiliateStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      await api.updateAffiliate(id, { is_active: !currentStatus });
+      toast({ title: `Affiliate ${!currentStatus ? 'activated' : 'suspended'}` });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update status",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateAffiliateCommission = async (id: string, rate: number) => {
+    try {
+      await api.updateAffiliate(id, { commission_rate: rate });
+      toast({ title: "Commission rate updated" });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update commission",
         variant: "destructive"
       });
     }
@@ -225,7 +269,7 @@ const AdminPanel = () => {
     setOrderUpdates((prev) => ({
       ...prev,
       [orderId]: {
-        status: prev[orderId]?.status ?? "pending",
+        status: prev[orderId]?.status ?? "processing",
         note: prev[orderId]?.note ?? "",
         payment_status: prev[orderId]?.payment_status ?? "pending",
         [key]: value,
@@ -333,13 +377,33 @@ const AdminPanel = () => {
       minimumFractionDigits: 0,
     }).format(Number(price ?? 0));
 
+
+
   const totalRevenue = orders.reduce(
     (sum, order) => sum + Number(order.total ?? 0),
     0
   );
 
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+  const pendingOrders = orders.filter((o) => o.status === "processing" || o.status === "pending").length;
   const shippedOrders = orders.filter((o) => o.status === "shipped").length;
+
+  // Chart Data Preparation
+  const revenueData = useMemo(() => {
+    const data: Record<string, number> = {};
+    orders.forEach(order => {
+      const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      data[date] = (data[date] || 0) + Number(order.total || 0);
+    });
+    return Object.entries(data).map(([name, value]) => ({ name, value })).slice(-7); // Last 7 days/entries
+  }, [orders]);
+
+  const statusData = useMemo(() => {
+    const data: Record<string, number> = {};
+    orders.forEach(order => {
+      data[order.status] = (data[order.status] || 0) + 1;
+    });
+    return Object.entries(data).map(([name, value]) => ({ name, value }));
+  }, [orders]);
 
   if (loading) {
     return (
@@ -377,7 +441,7 @@ const AdminPanel = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">Processing</CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
@@ -397,6 +461,54 @@ const AdminPanel = () => {
             <p className="text-xs text-muted-foreground">
               Orders marked as shipped
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatPrice(Number(value))} />
+                <Bar dataKey="value" fill="#8884d8" name="Revenue" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
@@ -806,8 +918,10 @@ const AdminPanel = () => {
                     <TableRow>
                       <TableHead>Code</TableHead>
                       <TableHead>User</TableHead>
-                      <TableHead>Commission</TableHead>
+                      <TableHead>Commission (%)</TableHead>
                       <TableHead>Balance</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -820,8 +934,36 @@ const AdminPanel = () => {
                             <span className="text-xs text-muted-foreground">{aff.email}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{aff.commission_rate}%</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              className="w-20 h-8"
+                              defaultValue={aff.commission_rate}
+                              onBlur={(e) => {
+                                const val = parseFloat(e.target.value);
+                                if (val !== aff.commission_rate) {
+                                  updateAffiliateCommission(aff.id, val);
+                                }
+                              }}
+                            />
+                          </div>
+                        </TableCell>
                         <TableCell>{formatPrice(aff.current_balance)}</TableCell>
+                        <TableCell>
+                          <Badge variant={aff.is_active ? 'default' : 'destructive'}>
+                            {aff.is_active ? 'Active' : 'Suspended'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant={aff.is_active ? "destructive" : "outline"}
+                            onClick={() => toggleAffiliateStatus(aff.id, aff.is_active)}
+                          >
+                            {aff.is_active ? "Suspend" : "Activate"}
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {affiliates.length === 0 && (

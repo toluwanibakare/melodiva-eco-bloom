@@ -220,8 +220,20 @@ class ApiClient {
     });
   }
 
+  async convertBalance(amount: number) {
+    return this.request<{ message: string; coupon_code: string; amount: number }>('/affiliates/convert', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
   async verifyAffiliateCode(code: string) {
-    return this.request<{ valid: boolean; code: string; commission_rate: number }>(`/affiliates/verify/${code}`);
+    return this.request<{
+      valid: boolean;
+      type: 'affiliate' | 'coupon';
+      code: string;
+      value: number; // percentage for affiliate, flat amount for coupon
+    }>(`/affiliates/verify/${code}`);
   }
 
   // Contact methods
@@ -317,6 +329,16 @@ class ApiClient {
 
   async getAdminWithdrawals() {
     return this.request('/admin/withdrawals');
+  }
+
+  async updateAffiliate(id: string, data: {
+    commission_rate?: number;
+    is_active?: boolean;
+  }) {
+    return this.request(`/admin/affiliates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   }
 
   async updateWithdrawalStatus(id: string, status: string) {

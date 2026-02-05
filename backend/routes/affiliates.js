@@ -174,28 +174,137 @@ router.post('/withdrawals', authenticate, async (req, res) => {
   }
 });
 
-// Verify affiliate code (public endpoint for checkout)
-router.get('/verify/:code', async (req, res) => {
+// Convert balance to coupon
+router.post('/convert', authenticate, async (req, res) => {
   try {
-    const { code } = req.params;
+    const { amount } = req.body;
 
+    if (!amount || amount < 100) {
+      return res.status(400).json({ error: 'Minimum conversion amount is ₦100' });
+    }
+
+    // Get active affiliate
     const [affiliates] = await pool.execute(
-      'SELECT id, affiliate_code, commission_rate FROM affiliates WHERE affiliate_code = ?',
-      [code.toUpperCase()]
+      'SELECT id, current_balance, user_id FROM affiliates WHERE user_id = ? AND is_active = TRUE',
+      [req.user.id]
     );
 
     if (affiliates.length === 0) {
-      return res.status(404).json({ error: 'Invalid affiliate code' });
+      return res.status(404).json({ error: 'Active affiliate account not found' });
     }
 
-    res.json({
-      valid: true,
-      code: affiliates[0].affiliate_code,
-      commission_rate: affiliates[0].commission_rate
-    });
+    const affiliate = affiliates[0];
+
+    if (affiliate.current_balance < amount) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    // Generate Coupon Code
+    const generateCouponCode = () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'CPN-';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    };
+
+    let couponCode;
+    let isUnique = false;
+    while (!isUnique) {
+      couponCode = generateCouponCode();
+      const [existing] = await pool.execute('SELECT id FROM coupons WHERE code = ?', [couponCode]);
+      if (existing.length === 0) isUnique = true;
+    }
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // Deduct balance
+      await connection.execute(
+        'UPDATE affiliates SET current_balance = current_balance - ?, total_withdrawn = total_withdrawn + ? WHERE id = ?',
+        [amount, amount, affiliate.id]
+      );
+
+      // Record withdrawal
+      await connection.execute(
+        `INSERT INTO affiliate_withdrawals (
+          id, affiliate_id, amount, bank_name, account_number, account_name, status, processed_at, created_at
+        ) VALUES (UUID(), ?, ?, 'System', 'Coupon', 'Wallet Exchange', 'paid', NOW(), NOW())`,
+        [affiliate.id, amount]
+      );
+
+      // Create Coupon
+      await connection.execute(
+        `INSERT INTO coupons (id, code, amount, status, user_id, created_at)
+         VALUES (UUID(), ?, ?, 'active', ?, NOW())`,
+        [couponCode, amount, affiliate.user_id]
+      );
+
+      await connection.commit();
+
+      res.status(201).json({
+        message: 'Balance converted successfully',
+        coupon_code: couponCode,
+        amount: amount
+      });
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
   } catch (error) {
-    console.error('Verify affiliate code error:', error);
-    res.status(500).json({ error: 'Failed to verify affiliate code' });
+    console.error('Convert balance error:', error);
+    res.status(500).json({ error: 'Failed to convert balance' });
+  }
+});
+
+// Verify promo code (affiliate or coupon)
+router.get('/verify/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const normalizedCode = code.toUpperCase();
+
+    // 1. Check Affiliates
+    const [affiliates] = await pool.execute(
+      'SELECT id, affiliate_code, commission_rate FROM affiliates WHERE affiliate_code = ? AND is_active = TRUE',
+      [normalizedCode]
+    );
+
+    if (affiliates.length > 0) {
+      return res.json({
+        valid: true,
+        type: 'affiliate',
+        code: affiliates[0].affiliate_code,
+        value: affiliates[0].commission_rate
+      });
+    }
+
+    // 2. Check Coupons
+    const [coupons] = await pool.execute(
+      'SELECT id, code, amount FROM coupons WHERE code = ? AND status = "active"',
+      [normalizedCode] // Coupon codes are stored as generated (likely uppercase prefix, ensuring generic)
+    );
+
+    // Note: Assuming strict case match for simplicity, or we ensure storage is Upper
+    // Let's assume user input might be mixed, so let's try to match case insensitive if DB collation allows
+    // But normalizedCode is Upper. My generator uses Upper. So standardizing on Upper is good.
+
+    if (coupons.length > 0) {
+      return res.json({
+        valid: true,
+        type: 'coupon',
+        code: coupons[0].code,
+        value: coupons[0].amount
+      });
+    }
+
+    res.status(404).json({ error: 'Invalid code' });
+  } catch (error) {
+    console.error('Verify code error:', error);
+    res.status(500).json({ error: 'Failed to verify code' });
   }
 });
 

@@ -10,7 +10,7 @@ export default function AffiliateRules() {
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-8">Affiliate Program Rules</h1>
-        
+
         <Card className="p-8 mb-6">
           <div className="space-y-6">
             <section>
@@ -35,6 +35,7 @@ export default function AffiliateRules() {
                 <li>Withdrawals are processed within 7 business days</li>
                 <li>You must provide valid bank account details for payment</li>
                 <li>All payments are made via bank transfer to Nigerian bank accounts only</li>
+                <li><strong>Coupon Exchange:</strong> You can exchange your balance for discount coupons starting from ₦100 instantly.</li>
               </ul>
             </section>
 
@@ -81,7 +82,7 @@ export default function AffiliateRules() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                 <CheckCircle2 className="text-primary" />
-              Support & Questions
+                Support & Questions
               </h2>
               <p className="text-muted-foreground">
                 For any questions about the affiliate program, please contact us at melodivaproducts@gmail.com

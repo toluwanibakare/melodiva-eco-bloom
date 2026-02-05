@@ -14,16 +14,68 @@ export default function AffiliateDashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [affiliateData, setAffiliateData] = useState<any>(null);
   const [referralCount, setReferralCount] = useState(0);
+  const [conversionAmount, setConversionAmount] = useState("");
   const [withdrawalData, setWithdrawalData] = useState({
     amount: "",
     bankName: "",
     accountNumber: "",
     accountName: ""
   });
+
+  const handleConversion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(conversionAmount);
+
+    if (amount < 100) {
+      toast({
+        title: "Error",
+        description: "Minimum conversion amount is ₦100",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (amount > affiliateData.current_balance) {
+      toast({
+        title: "Error",
+        description: "Insufficient balance",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setConverting(true);
+    try {
+      const res = await api.convertBalance(amount);
+      toast({
+        title: "Success! Coupon Created",
+        description: `Code: ${res.coupon_code} (Worth ₦${formatCurrency(res.amount)})`,
+      });
+      // Optionally copy to clipboard automatically or show in a nice dialog
+      navigator.clipboard.writeText(res.coupon_code);
+      toast({ title: "Copied to clipboard", description: "Coupon code copied!" });
+
+      setConversionAmount("");
+      // Refresh affiliate data
+      const dashboardData = await api.getAffiliateDashboard();
+      if (dashboardData.affiliate) {
+        setAffiliateData(dashboardData.affiliate);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Conversion failed",
+        variant: "destructive"
+      });
+    } finally {
+      setConverting(false);
+    }
+  };
 
   useEffect(() => {
     const checkAffiliateStatus = async () => {
@@ -240,76 +292,120 @@ export default function AffiliateDashboard() {
           </p>
         </Card>
 
-        {/* Withdrawal Section */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
-          <p className="text-muted-foreground mb-4">
-            Available Balance: <span className="font-bold text-foreground">{formatCurrency(affiliateData.current_balance)}</span>
-          </p>
-          <p className="text-sm text-muted-foreground mb-6">
-            Minimum withdrawal: ₦5,000 • Processing time: 7 business days
-          </p>
+        {/* Actions Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          {/* Withdrawal Section */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
+            <p className="text-muted-foreground mb-4">
+              Available Balance: <span className="font-bold text-foreground">{formatCurrency(affiliateData?.current_balance || 0)}</span>
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Minimum withdrawal: ₦5,000 • Processing time: 7 business days
+            </p>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="lg" disabled={affiliateData.current_balance < 5000}>
-                Request Withdrawal
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Withdrawal Request</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleWithdrawal} className="space-y-4">
-                <div>
-                  <Label htmlFor="amount">Amount (₦)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="5000"
-                    max={affiliateData.current_balance}
-                    value={withdrawalData.amount}
-                    onChange={(e) => setWithdrawalData({ ...withdrawalData, amount: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bankName">Bank Name</Label>
-                  <Input
-                    id="bankName"
-                    type="text"
-                    value={withdrawalData.bankName}
-                    onChange={(e) => setWithdrawalData({ ...withdrawalData, bankName: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="accountNumber">Account Number</Label>
-                  <Input
-                    id="accountNumber"
-                    type="text"
-                    value={withdrawalData.accountNumber}
-                    onChange={(e) => setWithdrawalData({ ...withdrawalData, accountNumber: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="accountName">Account Name</Label>
-                  <Input
-                    id="accountName"
-                    type="text"
-                    value={withdrawalData.accountName}
-                    onChange={(e) => setWithdrawalData({ ...withdrawalData, accountName: e.target.value })}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={withdrawing}>
-                  {withdrawing ? "Processing..." : "Submit Request"}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="lg" className="w-full" disabled={(affiliateData?.current_balance || 0) < 5000}>
+                  Request Payment
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </Card>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Withdrawal Request</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleWithdrawal} className="space-y-4">
+                  <div>
+                    <Label htmlFor="amount">Amount (₦)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      min="5000"
+                      max={affiliateData?.current_balance}
+                      value={withdrawalData.amount}
+                      onChange={(e) => setWithdrawalData({ ...withdrawalData, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      type="text"
+                      value={withdrawalData.bankName}
+                      onChange={(e) => setWithdrawalData({ ...withdrawalData, bankName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountNumber">Account Number</Label>
+                    <Input
+                      id="accountNumber"
+                      type="text"
+                      value={withdrawalData.accountNumber}
+                      onChange={(e) => setWithdrawalData({ ...withdrawalData, accountNumber: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountName">Account Name</Label>
+                    <Input
+                      id="accountName"
+                      type="text"
+                      value={withdrawalData.accountName}
+                      onChange={(e) => setWithdrawalData({ ...withdrawalData, accountName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={withdrawing}>
+                    {withdrawing ? "Processing..." : "Submit Request"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </Card>
+
+          {/* Exchange Section */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Exchange for Discount</h2>
+            <p className="text-muted-foreground mb-4">
+              Convert your earnings into a discount coupon for your next purchase.
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Minimum conversion: ₦100 • Instant availability
+            </p>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="secondary" size="lg" className="w-full" disabled={(affiliateData?.current_balance || 0) < 100}>
+                  Convert to Coupon
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Convert Balance</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleConversion} className="space-y-4">
+                  <div>
+                    <Label htmlFor="convAmount">Amount to Convert (₦)</Label>
+                    <Input
+                      id="convAmount"
+                      type="number"
+                      min="100"
+                      max={affiliateData?.current_balance}
+                      value={conversionAmount}
+                      onChange={(e) => setConversionAmount(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={converting}>
+                    {converting ? "Converting..." : "Convert Now"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </Card>
+        </div>
       </div>
     </div>
   );

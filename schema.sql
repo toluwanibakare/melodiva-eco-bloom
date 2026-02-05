@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS affiliates (
   total_commission DECIMAL(10,2) NOT NULL DEFAULT 0,
   current_balance DECIMAL(10,2) NOT NULL DEFAULT 0,
   total_withdrawn DECIMAL(10,2) NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
   rules_agreed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -227,12 +228,29 @@ BEGIN
   IF NEW.id IS NULL OR NEW.id = '' THEN SET NEW.id = UUID(); END IF;
 END$$
 
+-- ============================================================================
+-- COUPONS TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS coupons (
+  id CHAR(36) PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  amount DECIMAL(10,2) NOT NULL,
+  status ENUM('active', 'used') NOT NULL DEFAULT 'active',
+  user_id CHAR(36) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  used_at TIMESTAMP NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_coupons_code ON coupons(code);
+
 DELIMITER ;
 
 -- ============================================================================
 -- STORED PROCEDURE
 -- ============================================================================
 DELIMITER $$
+
 
 CREATE PROCEDURE generate_order_number(OUT new_order_number TEXT)
 BEGIN

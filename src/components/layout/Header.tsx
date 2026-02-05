@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, User, LogOut, Package } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -18,6 +18,7 @@ const Header = () => {
   const cartItems = useCartStore(state => state.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [user, setUser] = useState<any>(null);
+  const [isAffiliate, setIsAffiliate] = useState(false);
   const navigate = useNavigate();
 
   const adminEmails = useMemo(() => {
@@ -44,6 +45,16 @@ const Header = () => {
       setUser(session?.user ?? null);
     });
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      api.checkAffiliate()
+        .then(res => setIsAffiliate(res.isAffiliate))
+        .catch(() => setIsAffiliate(false));
+    } else {
+      setIsAffiliate(false);
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     await api.signOut();
@@ -116,6 +127,12 @@ const Header = () => {
                     <Package className="h-4 w-4 mr-2" />
                     Order History
                   </DropdownMenuItem>
+                  {isAffiliate && (
+                    <DropdownMenuItem onClick={() => navigate('/affiliate-dashboard')} className="cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Affiliate Dashboard
+                    </DropdownMenuItem>
+                  )}
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
                       <User className="h-4 w-4 mr-2" />

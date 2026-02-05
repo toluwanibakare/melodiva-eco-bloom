@@ -169,9 +169,8 @@ const Affiliate = () => {
             <p className="mb-2">
               • Commissions are withdrawable once they reach ₦5,000.
             </p>
-            <p>
-              • You can also use your commission balance to purchase Melodiva
-              products directly from our store.
+            <p className="mb-2">
+              • <strong>NEW:</strong> You can convert your commission balance into discount coupons for your own purchases! (Minimum ₦100).
             </p>
           </div>
         </Card>
