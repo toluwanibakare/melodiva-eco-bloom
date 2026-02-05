@@ -113,7 +113,7 @@ router.post('/', authenticate, async (req, res) => {
 
     // Get user email for confirmation
     const [profiles] = await pool.execute(
-      'SELECT email, full_name FROM profiles WHERE user_id = ?',
+      'SELECT email, full_name FROM users WHERE id = ?',
       [req.user.id]
     );
 

@@ -105,9 +105,9 @@ export default function AffiliateDashboard() {
 
   const handleWithdrawal = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const amount = parseFloat(withdrawalData.amount);
-    
+
     if (amount < 5000) {
       toast({
         title: "Error",
@@ -139,27 +139,18 @@ export default function AffiliateDashboard() {
         title: "Withdrawal Requested!",
         description: "Your withdrawal request has been submitted and will be processed within 7 business days.",
       });
-      
+
       setWithdrawalData({
         amount: "",
         bankName: "",
         accountNumber: "",
         accountName: ""
       });
-      
-      // Refresh affiliate data
-      const dashboardData = await api.getAffiliateDashboard();
-      setAffiliateData(dashboardData.affiliate);
 
       // Refresh affiliate data
-      const { data: updatedAffiliate } = await supabase
-        .from('affiliates')
-        .select('*')
-        .eq('id', affiliateData.id)
-        .single();
-      
-      if (updatedAffiliate) {
-        setAffiliateData(updatedAffiliate);
+      const dashboardData = await api.getAffiliateDashboard();
+      if (dashboardData.affiliate) {
+        setAffiliateData(dashboardData.affiliate);
       }
     } catch (error: any) {
       toast({

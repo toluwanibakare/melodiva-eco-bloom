@@ -46,38 +46,24 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = generateUUID();
 
-    // Create user
+    // Create user with all profile data
     await pool.execute(
-      // 'INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, NOW())',
-      [userId, email.toLowerCase(), hashedPassword]
-    );
-
-    // Create profile (trigger should handle this, but we'll do it explicitly)
-    const profileData = {
-      full_name: full_name || '',
-      phone_number: phone_number || '',
-      whatsapp_number: whatsapp_number || phone_number || null,
-      address: address || '',
-      state: state || '',
-      city: city || '',
-      security_question: security_question || '',
-      security_answer: security_answer.toLowerCase() || ''
-    };
-
-    await pool.execute(
-      `INSERT INTO users (id, , full_name, email, phone_number, whatsapp_number, address, state, city, security_question, security_answer, created_at)
-       VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      `INSERT INTO users (
+        id, email, password_hash, full_name, phone_number, whatsapp_number, 
+        address, state, city, security_question, security_answer, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [
         userId,
-        profileData.full_name,
         email.toLowerCase(),
-        profileData.phone_number,
-        profileData.whatsapp_number,
-        profileData.address,
-        profileData.state,
-        profileData.city,
-        profileData.security_question,
-        profileData.security_answer
+        hashedPassword,
+        full_name,
+        phone_number,
+        whatsapp_number || null,
+        address,
+        state,
+        city,
+        security_question,
+        security_answer.toLowerCase()
       ]
     );
 
@@ -155,7 +141,9 @@ router.post('/signin', async (req, res) => {
 router.get('/session', authenticate, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, email, created_at FROM users WHERE id = ?',
+      `SELECT id, email, full_name, phone_number, whatsapp_number, 
+              address, state, city, created_at 
+       FROM users WHERE id = ?`,
       [req.user.id]
     );
 
@@ -200,7 +188,7 @@ router.post('/forgot-password/verify', async (req, res) => {
 
     // Generate reset token
     const resetToken = generateToken({ userId: profile.id, type: 'password_reset' });
-    
+
     // Store reset token in user metadata or create a separate table
     // For simplicity, we'll use a temporary approach
     // In production, you might want a password_reset_tokens table

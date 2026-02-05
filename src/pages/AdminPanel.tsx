@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, auth } from "@/lib/api";
-import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,10 +33,51 @@ import {
   Users,
 } from "lucide-react";
 
-type OrderRow = Tables<"orders">;
-type ProfileRow = Tables<"profiles">;
-type StatusHistoryRow = Tables<"order_status_history">;
-type ProductRow = Tables<"products">;
+interface OrderRow {
+  id: string;
+  order_number: string;
+  created_at: string;
+  status: string;
+  payment_status: string;
+  total: number;
+  subtotal: number;
+  delivery_fee: number;
+  discount: number;
+  delivery_address: string;
+  delivery_city: string;
+  delivery_state: string;
+  phone_number: string;
+  user_id?: string;
+}
+
+interface ProfileRow {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  created_at: string;
+  phone_number: string | null;
+  whatsapp_number: string | null;
+  city: string | null;
+  state: string | null;
+}
+
+interface StatusHistoryRow {
+  id: string;
+  order_id: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
+interface ProductRow {
+  id?: string;
+  name: string;
+  type: string;
+  description?: string;
+  price: number;
+  stock: number;
+  image_url?: string;
+}
 
 type OrderUpdateState = {
   status: string;
@@ -79,6 +119,22 @@ const AdminPanel = () => {
   const [productError, setProductError] = useState<string | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [affiliates, setAffiliates] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+
+  const updateWithdrawal = async (id: string, status: string) => {
+    try {
+      await api.updateWithdrawalStatus(id, status);
+      toast({ title: "Withdrawal updated" });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update withdrawal",
+        variant: "destructive"
+      });
+    }
+  };
 
   const adminEmails = useMemo(() => {
     return (import.meta.env.VITE_ADMIN_EMAILS ?? "")
@@ -119,17 +175,21 @@ const AdminPanel = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersData, profilesData, historyData, productsData] =
+      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData] =
         await Promise.all([
           api.getAdminOrders(),
           api.getAdminProfiles(),
           api.getAdminOrderHistory(),
-          api.getAdminProducts().catch(() => [])
+          api.getAdminProducts().catch(() => []),
+          api.getAdminAffiliates().catch(() => []),
+          api.getAdminWithdrawals().catch(() => [])
         ]);
 
       setOrders(Array.isArray(ordersData) ? ordersData : []);
       setProfiles(Array.isArray(profilesData) ? profilesData : []);
-      
+      setAffiliates(Array.isArray(affiliatesData) ? affiliatesData : []);
+      setWithdrawals(Array.isArray(withdrawalsData) ? withdrawalsData : []);
+
       if (Array.isArray(productsData)) {
         setProductError(null);
         setProducts(productsData);
@@ -346,6 +406,7 @@ const AdminPanel = () => {
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="affiliates">Affiliates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="space-y-4">
@@ -359,7 +420,7 @@ const AdminPanel = () => {
             <CardContent className="space-y-4">
               {orders.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  No orders found in Supabase.
+                  No orders found.
                 </p>
               )}
 
@@ -732,6 +793,108 @@ const AdminPanel = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="affiliates" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Affiliates Roster</CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Commission</TableHead>
+                      <TableHead>Balance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {affiliates.map((aff) => (
+                      <TableRow key={aff.id}>
+                        <TableCell className="font-medium">{aff.affiliate_code}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{aff.full_name}</span>
+                            <span className="text-xs text-muted-foreground">{aff.email}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{aff.commission_rate}%</TableCell>
+                        <TableCell>{formatPrice(aff.current_balance)}</TableCell>
+                      </TableRow>
+                    ))}
+                    {affiliates.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                          No affiliates found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdrawal Requests</CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Affiliate</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {withdrawals.map((w) => (
+                      <TableRow key={w.id}>
+                        <TableCell className="text-xs">
+                          {new Date(w.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {w.full_name}
+                          <div className="text-[10px] text-muted-foreground">{w.bank_name}</div>
+                        </TableCell>
+                        <TableCell>{formatPrice(w.amount)}</TableCell>
+                        <TableCell>
+                          <Badge variant={w.status === 'paid' ? 'default' : w.status === 'pending' ? 'outline' : 'secondary'}>
+                            {w.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {w.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => updateWithdrawal(w.id, 'paid')}>
+                                Pay
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => updateWithdrawal(w.id, 'rejected')}>
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {withdrawals.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                          No pending withdrawals
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
       </Tabs>
     </div>
   );

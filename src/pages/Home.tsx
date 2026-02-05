@@ -5,19 +5,42 @@ import { products } from '@/data/products';
 import heroImg from '@/assets/hero-bg.png';
 import { Leaf, Star, Heart, Award } from 'lucide-react';
 import melodivaLogo from "@/assets/logo-bold.jpg";
+import { useEffect, useState } from 'react';
+import { api, auth } from '@/lib/api';
 
 const Home = () => {
+  const [isAffiliate, setIsAffiliate] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const { data: { session } } = await auth.getSession();
+        if (session) {
+          const { isAffiliate } = await api.checkAffiliate();
+          setIsAffiliate(isAffiliate);
+        }
+      } catch (error) {
+        // Ignore auth errors, just means user isn't logged in or affiliate check failed
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkStatus();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[700px] flex items-center justify-center overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
         </div>
-        
+
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
             Natural Beauty, Naturally Yours
@@ -29,64 +52,70 @@ const Home = () => {
             <Button asChild size="lg" className="text-lg px-8">
               <Link to="/shop">Shop Now</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
-              <Link to="/affiliate">Join Affiliate</Link>
-            </Button>
+            {isAffiliate ? (
+              <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
+                <Link to="/affiliate-dashboard">View Dashboard</Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
+                <Link to="/affiliate">Join Affiliate</Link>
+              </Button>
+            )}
           </div>
         </div>
       </section>
 
-            {/* About Melodiva */}
+      {/* About Melodiva */}
       <section className="py-16 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
-          {/* Text Section */}
-          <div>
-            <h2 className="text-3xl font-bold text-primary mb-4">
-              About Melodiva Skin Care
-            </h2>
-            <p className="text-lg text-foreground/80 mb-4">
-              Melodiva Skin Care was registered to do business in Nigeria on
-              17th November, 2023. Our business is the manufacturing and sales
-              of organic cosmetic products.
-            </p>
-            <p className="text-foreground/70 mb-4">
-              We manufacture soaps and oils that take care of the skin, which is
-              the largest organ of the human body. We believe that everyone is
-              naturally beautiful, hence our soaps and oils are made from
-              organic plants that enhance natural beauty.
-            </p>
-            <p className="text-foreground/70">
-              Our products are suitable for people of all ages, races, skin
-              types, and colors.
-            </p>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+            {/* Text Section */}
+            <div>
+              <h2 className="text-3xl font-bold text-primary mb-4">
+                About Melodiva Skin Care
+              </h2>
+              <p className="text-lg text-foreground/80 mb-4">
+                Melodiva Skin Care was registered to do business in Nigeria on
+                17th November, 2023. Our business is the manufacturing and sales
+                of organic cosmetic products.
+              </p>
+              <p className="text-foreground/70 mb-4">
+                We manufacture soaps and oils that take care of the skin, which is
+                the largest organ of the human body. We believe that everyone is
+                naturally beautiful, hence our soaps and oils are made from
+                organic plants that enhance natural beauty.
+              </p>
+              <p className="text-foreground/70">
+                Our products are suitable for people of all ages, races, skin
+                types, and colors.
+              </p>
 
-            {/* Feature Icons */}
-            <div className="grid grid-cols-2 gap-6 mt-8">
-              <div className="text-center">
-                <Award className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
-                <h6 className="font-semibold text-foreground">Premium Quality</h6>
-                <small className="text-muted-foreground">Handcrafted with care</small>
-              </div>
-              <div className="text-center">
-                <Heart className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
-                <h6 className="font-semibold text-foreground">Customer Love</h6>
-                <small className="text-muted-foreground">Trusted by many</small>
+              {/* Feature Icons */}
+              <div className="grid grid-cols-2 gap-6 mt-8">
+                <div className="text-center">
+                  <Award className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
+                  <h6 className="font-semibold text-foreground">Premium Quality</h6>
+                  <small className="text-muted-foreground">Handcrafted with care</small>
+                </div>
+                <div className="text-center">
+                  <Heart className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
+                  <h6 className="font-semibold text-foreground">Customer Love</h6>
+                  <small className="text-muted-foreground">Trusted by many</small>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Image Section */}
-          <div className="text-center">
-            <img
-              src={melodivaLogo}
-              alt="About Melodiva"
-              className="rounded-lg shadow-lg mx-auto object-cover max-h-[400px] transition-transform transform hover:scale-105"
-            />
+            {/* Image Section */}
+            <div className="text-center">
+              <img
+                src={melodivaLogo}
+                alt="About Melodiva"
+                className="rounded-lg shadow-lg mx-auto object-cover max-h-[400px] transition-transform transform hover:scale-105"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       {/* Features Section */}
       <section className="py-20 bg-muted/50">
@@ -171,7 +200,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '100ms' }}>
               <div className="flex items-center mb-4">
                 <div className="flex text-primary">
@@ -193,7 +222,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center mb-4">
                 <div className="flex text-primary">
@@ -217,9 +246,9 @@ const Home = () => {
             </div>
           </div>
         </div>
-          <Button asChild size="lg" className="text-lg px-8 mt-20 flex justify-center items-center ml-20 mr-20" >
-            <Link to="/contact">Submit a Review</Link>
-          </Button>
+        <Button asChild size="lg" className="text-lg px-8 mt-20 flex justify-center items-center ml-20 mr-20" >
+          <Link to="/contact">Submit a Review</Link>
+        </Button>
       </section>
 
       {/* Why Choose Us Section */}
@@ -264,15 +293,31 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-20 bg-primary text-primary-foreground mt-20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Join Our Affiliate Program
-          </h2>
-          <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-            Earn commissions when customers buy our products through your code. Get your unique referral code today!
-          </p>
-          <Button asChild size="lg" variant="secondary" className="text-lg px-8">
-            <Link to="/affiliate">Learn More</Link>
-          </Button>
+          {isAffiliate ? (
+            <>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Your Affiliate Dashboard
+              </h2>
+              <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+                Track your commissions, view your earnings, and manage your affiliate account all in one place.
+              </p>
+              <Button asChild size="lg" variant="secondary" className="text-lg px-8">
+                <Link to="/affiliate-dashboard">Go to Dashboard</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Join Our Affiliate Program
+              </h2>
+              <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+                Earn commissions when customers buy our products through your code. Get your unique referral code today!
+              </p>
+              <Button asChild size="lg" variant="secondary" className="text-lg px-8">
+                <Link to="/affiliate">Learn More</Link>
+              </Button>
+            </>
+          )}
         </div>
       </section>
     </div>

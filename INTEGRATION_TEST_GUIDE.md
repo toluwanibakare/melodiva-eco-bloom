@@ -13,7 +13,7 @@
    - Fill in your database credentials and email settings
 
 3. **Database Setup:**
-   - Run the MySQL schema from `supabase/schema.sql`
+   - Run the MySQL schema from `schema.sql`
    - Ensure the `password_hash` column exists in the `users` table
 
 4. **Frontend Setup:**

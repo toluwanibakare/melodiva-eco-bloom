@@ -41,7 +41,7 @@ Required environment variables:
 - `ADMIN_EMAILS` - Comma-separated admin emails
 
 3. Database Setup:
-Make sure your MySQL database is set up with the schema from `../supabase/schema.sql`.
+Make sure your MySQL database is set up with the schema from `../schema.sql`.
 
 **Important**: You need to add a `password_hash` column to the `users` table:
 ```sql
@@ -113,7 +113,7 @@ Tokens are obtained from the signup or signin endpoints.
 
 ## Database Schema
 
-The backend uses the MySQL schema defined in `../supabase/schema.sql`. Make sure to:
+The backend uses the MySQL schema defined in `../schema.sql`. Make sure to:
 
 1. Run the schema SQL to create all tables
 2. Add `password_hash` column to `users` table:

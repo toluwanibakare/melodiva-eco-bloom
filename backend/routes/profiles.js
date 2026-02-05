@@ -8,10 +8,10 @@ const router = express.Router();
 router.get('/me', authenticate, async (req, res) => {
   try {
     const [profiles] = await pool.execute(
-      `SELECT id, user_id, full_name, email, phone_number, whatsapp_number, 
+      `SELECT id, full_name, email, phone_number, whatsapp_number, 
               address, state, city, security_question, created_at, updated_at
-       FROM profiles 
-       WHERE user_id = ?`,
+       FROM users 
+       WHERE id = ?`,
       [req.user.id]
     );
 
@@ -36,10 +36,10 @@ router.put('/me', authenticate, async (req, res) => {
     const { full_name, phone_number, whatsapp_number, address, state, city } = req.body;
 
     await pool.execute(
-      `UPDATE profiles 
+      `UPDATE users 
        SET full_name = ?, phone_number = ?, whatsapp_number = ?, 
            address = ?, state = ?, city = ?, updated_at = NOW()
-       WHERE user_id = ?`,
+       WHERE id = ?`,
       [full_name, phone_number, whatsapp_number, address, state, city, req.user.id]
     );
 

@@ -309,30 +309,86 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Admin Affiliate Methods
+  async getAdminAffiliates() {
+    return this.request('/admin/affiliates');
+  }
+
+  async getAdminWithdrawals() {
+    return this.request('/admin/withdrawals');
+  }
+
+  async updateWithdrawalStatus(id: string, status: string) {
+    return this.request(`/admin/withdrawals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
 }
 
 export const api = new ApiClient();
 
 // Auth state management helper
-export const auth = {
+// Auth state management helper
+type AuthListener = (event: string, session: any) => void;
+
+class AuthManager {
+  private listeners: AuthListener[] = [];
+
+  constructor() { }
+
   async getSession() {
     return api.getSession();
-  },
+  }
 
-  async onAuthStateChange(callback: (event: string, session: any) => void) {
-    // Check initial session
-    const { data: { session } } = await api.getSession();
-    if (session) {
-      callback('SIGNED_IN', session);
-    }
+  onAuthStateChange(callback: AuthListener) {
+    this.listeners.push(callback);
 
-    // Return a subscription object (simplified version)
+    // Check initial session and fire immediately
+    api.getSession().then(({ data: { session } }) => {
+      if (session) {
+        callback('SIGNED_IN', session);
+      }
+    });
+
     return {
       data: {
         subscription: {
-          unsubscribe: () => {},
+          unsubscribe: () => {
+            this.listeners = this.listeners.filter(l => l !== callback);
+          },
         },
       },
     };
-  },
+  }
+
+  notify(event: string, session: any) {
+    this.listeners.forEach(callback => callback(event, session));
+  }
+}
+
+export const auth = new AuthManager();
+
+// Augment ApiClient to notify AuthManager
+const originalSetToken = ApiClient.prototype.setToken;
+ApiClient.prototype.setToken = function (token: string | null) {
+  originalSetToken.call(this, token);
+
+  // Notify listeners
+  // We need to fetch the session details if logging in, or send null if logging out
+  if (token) {
+    // We can't easily await inside this sync method, but we can trigger the fetch
+    // Use a small delay or promise chain to allow the token to be set first
+    setTimeout(() => {
+      this.getSession().then((result: any) => {
+        auth.notify('SIGNED_IN', result.data.session);
+      }).catch(() => {
+        // If session fetch fails (e.g. invalid token), treat as signed out
+        auth.notify('SIGNED_OUT', null);
+      });
+    }, 0);
+  } else {
+    auth.notify('SIGNED_OUT', null);
+  }
 };
