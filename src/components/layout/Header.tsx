@@ -58,7 +58,7 @@ const Header = () => {
 
   const handleSignOut = async () => {
     await api.signOut();
-    navigate('/');
+    window.location.href = '/';
   };
 
   const navigation = [
