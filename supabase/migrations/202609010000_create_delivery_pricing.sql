@@ -71,6 +71,7 @@ ON CONFLICT (location_type, name, parent_state) DO NOTHING;
 
 -- Seed Lagos cities
 INSERT INTO public.delivery_pricing (location_type, name, parent_state, price) VALUES
+  ('city', 'Agege', 'Lagos', 0),
   ('city', 'Ajeromi-Ifelodun', 'Lagos', 0),
   ('city', 'Alimosho', 'Lagos', 0),
   ('city', 'Amuwo-Odofin', 'Lagos', 0),

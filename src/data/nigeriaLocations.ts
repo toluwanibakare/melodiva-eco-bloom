@@ -608,6 +608,7 @@ export const nigeriaStates: StateCity[] = [
   {
     "state": "Lagos",
     "cities": [
+      "Agege",
       "Ajeromi-Ifelodun",
       "Alimosho",
       "Amuwo-Odofin",

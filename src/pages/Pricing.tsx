@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Plus, Save } from "lucide-react";
 import { nigeriaStates } from "@/data/nigeriaLocations";
 
 type Row = {
@@ -28,6 +28,10 @@ export default function Pricing() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [customCities, setCustomCities] = useState<string[]>([]);
+  const [newCity, setNewCity] = useState("");
+
+  const allCities = [...lagosCities, ...customCities];
 
   useEffect(() => {
     (async () => {
@@ -37,9 +41,20 @@ export default function Pricing() {
 
       if (data) {
         const map: Record<string, number> = {};
+        const extras: string[] = [];
         data.forEach((row: any) => {
+          if (
+            row.location_type === "city" &&
+            row.parent_state === "Lagos" &&
+            !lagosCities.includes(row.name) &&
+            !extras.includes(row.name)
+          ) {
+            extras.push(row.name);
+          }
           map[locationKey(row.location_type, row.name, row.parent_state)] = row.price;
         });
+        extras.sort((a, b) => a.localeCompare(b));
+        setCustomCities(extras);
         setPrices(map);
       }
       setLoading(false);
@@ -58,6 +73,22 @@ export default function Pricing() {
     return prices[locationKey(location_type, name, parent_state)] ?? 0;
   };
 
+  const handleAddCity = () => {
+    const name = newCity.trim();
+    if (!name) {
+      toast({ title: "City name required", variant: "destructive" });
+      return;
+    }
+    if (allCities.some((c) => c.toLowerCase() === name.toLowerCase())) {
+      toast({ title: "City already exists", variant: "destructive" });
+      return;
+    }
+    setCustomCities((prev) => [...prev, name]);
+    setPrices((prev) => ({ ...prev, [locationKey("city", name, "Lagos")]: 0 }));
+    setNewCity("");
+    toast({ title: "City added", description: "Set a delivery fee and save to update it." });
+  };
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -68,7 +99,7 @@ export default function Pricing() {
         parent_state: null as null,
         price: getPrice("state", s.state, null),
       })),
-      ...lagosCities.map((c) => ({
+      ...allCities.map((c) => ({
         location_type: "city" as const,
         name: c,
         parent_state: "Lagos",
@@ -128,7 +159,7 @@ export default function Pricing() {
         <Tabs defaultValue="states">
           <TabsList className="mb-6 w-full justify-start">
             <TabsTrigger value="states">States ({nigeriaStates.length})</TabsTrigger>
-            <TabsTrigger value="lagos">Lagos Cities ({lagosCities.length})</TabsTrigger>
+            <TabsTrigger value="lagos">Lagos Cities ({allCities.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="states">
@@ -154,12 +185,35 @@ export default function Pricing() {
                 <CardTitle className="text-lg">Lagos Local Government Areas</CardTitle>
               </CardHeader>
               <CardContent>
-                {renderRows(
-                  lagosCities.map((c) => ({
-                    label: c,
-                    location_type: "city",
-                    parent_state: "Lagos",
-                  }))
+                <div className="flex gap-3 mb-6">
+                  <Input
+                    type="text"
+                    placeholder="Add a new city (e.g. Agege)"
+                    value={newCity}
+                    onChange={(e) => setNewCity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCity();
+                      }
+                    }}
+                    className="max-w-xs"
+                  />
+                  <Button type="button" onClick={handleAddCity} variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add City
+                  </Button>
+                </div>
+                {allCities.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">No cities added yet.</p>
+                ) : (
+                  renderRows(
+                    allCities.map((c) => ({
+                      label: c,
+                      location_type: "city",
+                      parent_state: "Lagos",
+                    }))
+                  )
                 )}
               </CardContent>
             </Card>
