@@ -20,6 +20,7 @@ import OrderHistory from "./pages/OrderHistory";
 import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 import OrderSuccess from "./pages/OrderSuccess";
+import Pricing from "./pages/Pricing";
 import AdminPanel from "./pages/AdminPanel";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
