@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, ShoppingBag, Tag } from 'lucide-react';
+import { Trash2, ShoppingBag, Tag, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
@@ -258,16 +258,38 @@ const Cart = () => {
               )}
 
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Delivery Fee</span>
-                <span>{formatPrice(deliveryFee)}</span>
+                <span>Estimated Delivery</span>
+                <span>Selected at checkout</span>
               </div>
 
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
-                <span>Total</span>
+                <span>Subtotal (excl. delivery)</span>
                 <span className="text-primary">
-                  {formatPrice(total)}
+                  {formatPrice(subtotalAfterDiscount)}
                 </span>
               </div>
+            </div>
+
+            {/* Delivery Rates Info Card */}
+            <div className="p-4 mb-6 rounded-lg bg-secondary/30 border border-border space-y-2 text-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-foreground text-sm">
+                <Truck className="h-4 w-4 text-primary shrink-0" />
+                <span>Delivery Rates & Carriers</span>
+              </div>
+              <ul className="space-y-2 text-muted-foreground pt-1">
+                <li className="border-b border-border/50 pb-1.5">
+                  <span className="font-medium text-foreground block">Lagos Doorstep Delivery:</span>
+                  <span className="text-primary font-semibold">₦2,000 – ₦3,000</span> • Registered dispatch riders
+                </li>
+                <li className="border-b border-border/50 pb-1.5">
+                  <span className="font-medium text-foreground block">Interstate (Hub to Hub):</span>
+                  <span className="text-primary font-semibold">₦4,000 – ₦6,000</span> • Waybill with Interstate transporter
+                </li>
+                <li>
+                  <span className="font-medium text-foreground block">Interstate + Doorstep:</span>
+                  <span className="text-primary font-semibold">₦5,500 – ₦8,000</span> • Waybill + local dispatch rider
+                </li>
+              </ul>
             </div>
 
             <Button className="w-full" size="lg" asChild>

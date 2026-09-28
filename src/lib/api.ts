@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
@@ -186,11 +188,15 @@ class ApiClient {
   }
 
   async getOrder(orderId: string) {
-    return this.request(`/orders/${orderId}`);
+    return this.request(`/orders/${encodeURIComponent(orderId)}`);
+  }
+
+  async trackOrder(orderId: string) {
+    return this.request(`/orders/track/${encodeURIComponent(orderId)}`);
   }
 
   async getOrderHistory(orderId: string) {
-    return this.request(`/orders/${orderId}/history`);
+    return this.request(`/orders/${encodeURIComponent(orderId)}/history`);
   }
 
   // Affiliate methods
@@ -237,11 +243,28 @@ class ApiClient {
   }
 
   // Contact methods
-  async submitContactMessage(data: { name: string; email: string; message: string }) {
-    return this.request('/contact/messages', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  async submitContactMessage(data: { name: string; email: string; message: string; phone?: string; subject?: string }) {
+    try {
+      return await this.request('/contact/messages', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.warn('API /contact/messages endpoint unavailable, writing to Supabase...', e);
+      const { data: result, error } = await supabase
+        .from('contact_messages')
+        .insert([{
+          name: data.name,
+          email: data.email,
+          phone: data.phone || null,
+          subject: data.subject || 'General Inquiry',
+          message: data.message,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
+      if (error) throw error;
+      return result;
+    }
   }
 
   async submitReview(data: {
@@ -346,6 +369,43 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
+  }
+
+  async getAdminContactMessages() {
+    try {
+      const res = await this.request<any[]>('/admin/contact-messages');
+      if (Array.isArray(res)) return res;
+    } catch (e) {
+      console.warn('API /admin/contact-messages failed, querying Supabase...', e);
+    }
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching contact messages from Supabase:', err);
+      return [];
+    }
+  }
+
+  async replyContactMessage(id: string, reply: string) {
+    try {
+      return await this.request(`/admin/contact-messages/${id}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ reply }),
+      });
+    } catch (e) {
+      console.warn('API reply endpoint failed, updating Supabase directly...', e);
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .update({ reply, status: 'replied', updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, data };
+    }
   }
 }
 

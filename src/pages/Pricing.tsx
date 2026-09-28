@@ -152,9 +152,34 @@ export default function Pricing() {
         <h1 className="text-4xl font-bold text-center text-foreground mb-2">
           Delivery Pricing
         </h1>
-        <p className="text-center text-muted-foreground mb-10">
-          Set delivery fees for each Nigerian state and each Lagos city.
-        </p>
+        <Card className="mb-8 p-6 bg-primary/5 border-primary/20">
+          <h2 className="font-bold text-lg mb-3 text-foreground flex items-center gap-2">
+            🚚 Standard Delivery Policy & Carriers
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-3 bg-card rounded-lg border border-border">
+              <span className="font-semibold text-foreground block text-sm mb-1">
+                Lagos Doorstep Delivery
+              </span>
+              <span className="text-primary font-bold text-sm block mb-1">₦2,000 – ₦3,000</span>
+              <p className="text-muted-foreground">Delivery is by: Registered dispatch riders</p>
+            </div>
+            <div className="p-3 bg-card rounded-lg border border-border">
+              <span className="font-semibold text-foreground block text-sm mb-1">
+                Interstate (Hub to Hub)
+              </span>
+              <span className="text-primary font-bold text-sm block mb-1">₦4,000 – ₦6,000</span>
+              <p className="text-muted-foreground">Delivery is by: Registered waybill with Interstate transporter</p>
+            </div>
+            <div className="p-3 bg-card rounded-lg border border-border">
+              <span className="font-semibold text-foreground block text-sm mb-1">
+                Interstate + Doorstep
+              </span>
+              <span className="text-primary font-bold text-sm block mb-1">₦5,500 – ₦8,000</span>
+              <p className="text-muted-foreground">Delivery is by: Registered Waybill with Interstate transporter + dispatch rider</p>
+            </div>
+          </div>
+        </Card>
 
         <Tabs defaultValue="states">
           <TabsList className="mb-6 w-full justify-start">

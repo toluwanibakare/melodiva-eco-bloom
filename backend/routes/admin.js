@@ -307,4 +307,43 @@ router.put('/withdrawals/:id', async (req, res) => {
   }
 });
 
+// Contact Messages Management
+router.get('/contact-messages', async (req, res) => {
+  try {
+    const [messages] = await pool.execute(
+      `SELECT id, name, email, phone, subject, message, status, reply, created_at, updated_at
+       FROM contact_messages 
+       ORDER BY created_at DESC`
+    );
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Get contact messages error:', error);
+    res.status(500).json({ error: 'Failed to get contact messages' });
+  }
+});
+
+router.post('/contact-messages/:id/reply', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reply } = req.body;
+
+    if (!reply) {
+      return res.status(400).json({ error: 'Reply text is required' });
+    }
+
+    await pool.execute(
+      `UPDATE contact_messages 
+       SET reply = ?, status = 'replied', updated_at = NOW()
+       WHERE id = ?`,
+      [reply, id]
+    );
+
+    res.json({ message: 'Reply saved successfully' });
+  } catch (error) {
+    console.error('Reply contact message error:', error);
+    res.status(500).json({ error: 'Failed to save reply' });
+  }
+});
+
 export default router;

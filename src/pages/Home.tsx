@@ -1,16 +1,31 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
 import heroImg from '@/assets/hero-bg.png';
-import { Leaf, Star, Heart, Award } from 'lucide-react';
+import { Leaf, Star, Heart, Award, Truck, Gift, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import melodivaLogo from "@/assets/logo-bold.jpg";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { api, auth } from '@/lib/api';
+import FAQSection from '@/components/FAQSection';
 
 const Home = () => {
   const [isAffiliate, setIsAffiliate] = useState(false);
   const [loading, setLoading] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -21,7 +36,7 @@ const Home = () => {
           setIsAffiliate(isAffiliate);
         }
       } catch (error) {
-        // Ignore auth errors, just means user isn't logged in or affiliate check failed
+        // Ignore auth errors
       } finally {
         setLoading(false);
       }
@@ -33,31 +48,46 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[700px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[680px] md:h-[760px] flex items-center justify-center overflow-hidden natural-glow-bg">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105"
           style={{ backgroundImage: `url(${heroImg})` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-emerald-950/80 to-black/90" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.15)_0,transparent_70%)] pointer-events-none" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 text-center text-white">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
-            Natural Beauty, Naturally Yours
+        {/* Ambient Floating Decorative Glow Orbs */}
+        <div className="absolute top-1/4 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-float pointer-events-none" />
+        <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+
+        <div className="relative z-10 container mx-auto px-4 md:px-8 text-center text-white max-w-4xl space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-emerald-400/30 text-xs md:text-sm font-extrabold tracking-wide shadow-lg">
+            <Leaf className="h-4 w-4 text-emerald-400" />
+            <span>100% Handcrafted Raw Nigerian Botanicals</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-tight animate-fade-in-up">
+            Nurture Your Skin with <span className="gradient-text">Pure Nature</span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-white/90">
-            Discover the power of nature with our premium black soap and kernel oil products. Handcrafted with love for your skin's natural glow.
+
+          <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto text-white/90 leading-relaxed font-medium animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+            Discover gentle African black soaps and pure cold-pressed kernel oil, lovingly created to restore your skin’s natural, healthy glow.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-lg px-8">
-              <Link to="/shop">Shop Now</Link>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-3 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <Button asChild size="lg" className="btn-primary text-base px-9 py-6 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition-all duration-300">
+              <Link to="/shop">
+                <span>Explore Catalog</span>
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
             {isAffiliate ? (
-              <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
+              <Button asChild size="lg" variant="outline" className="text-base px-8 py-6 rounded-2xl bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-300 font-bold">
                 <Link to="/affiliate-dashboard">View Dashboard</Link>
               </Button>
             ) : (
-              <Button asChild size="lg" variant="outline" className="text-lg px-8 bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
+              <Button asChild size="lg" variant="outline" className="text-base px-8 py-6 rounded-2xl bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-300 font-bold">
                 <Link to="/affiliate">Join Affiliate</Link>
               </Button>
             )}
@@ -65,257 +95,460 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Natural Skin & Botanical Showcase */}
+      <section className="py-20 bg-background relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
+          <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+            <span className="text-xs uppercase tracking-widest font-extrabold text-primary px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-flex items-center gap-1.5 shadow-xs">
+              <Leaf className="w-3.5 h-3.5 text-primary" />
+              <span>Our Natural Philosophy</span>
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+              The Grace of <span className="gradient-text">Pure Nature</span>
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              We select raw organic ingredients from native soils to gently nourish your skin and honor its natural balance.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1: Radiant Skin */}
+            <div className="group rounded-3xl overflow-hidden bg-card border border-emerald-500/15 shadow-sm hover:shadow-2xl hover:border-emerald-500/40 transition-all duration-500 flex flex-col">
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src="/glowing-skin-nature.jpg"
+                  alt="Radiant Skin Nature"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              </div>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    For All Skin Types & Tones
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-2">
+                    Gentle, deeply nourishing formulas that restore balance, soothe irritation, and promote soft, healthy glowing skin every day.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-border/60 flex items-center gap-2 text-xs font-bold text-primary">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Dermatology Tested & Safe</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Botanical Ingredients */}
+            <div className="group rounded-3xl overflow-hidden bg-card border border-emerald-500/15 shadow-sm hover:shadow-2xl hover:border-emerald-500/40 transition-all duration-500 flex flex-col">
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src="/botanical-herbs.jpg"
+                  alt="Botanical Ingredients"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              </div>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Cold-Pressed & Handcrafted
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-2">
+                    Wild-harvested palm kernels, unrefined cocoa pod ash, and organic herbal infusions—zero artificial chemicals or synthetic sulfates.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-border/60 flex items-center gap-2 text-xs font-bold text-primary">
+                  <Leaf className="w-4 h-4" />
+                  <span>100% Zero Harsh Additives</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Sustainable Eco Nature */}
+            <div className="group rounded-3xl overflow-hidden bg-card border border-emerald-500/15 shadow-sm hover:shadow-2xl hover:border-emerald-500/40 transition-all duration-500 flex flex-col">
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src="/nature-leaf-texture.jpg"
+                  alt="Nature Leaf Texture"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              </div>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Sourced from Nigerian Farms
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-2">
+                    Ethically sourced in partnership with local agricultural communities, supporting sustainable farming and authentic eco-friendly practices.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-border/60 flex items-center gap-2 text-xs font-bold text-primary">
+                  <Award className="w-4 h-4" />
+                  <span>Registered Organic Brand</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About Melodiva */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+      <section className="py-20 bg-secondary/30 border-y border-border/50">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12 max-w-[1600px] mx-auto">
             {/* Text Section */}
-            <div>
-              <h2 className="text-3xl font-bold text-primary mb-4">
-                About Melodiva Skin Care
+            <div className="space-y-4">
+              <span className="text-xs uppercase tracking-widest font-extrabold text-primary px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-flex items-center gap-1.5 shadow-xs">
+                <Heart className="w-3.5 h-3.5 text-primary" />
+                <span>About Our Journey</span>
+              </span>
+              <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+                Crafted With <span className="gradient-text">Love & Care</span>
               </h2>
-              <p className="text-lg text-foreground/80 mb-4">
-                Melodiva Skin Care was registered to do business in Nigeria on
-                17th November, 2023. Our business is the manufacturing and sales
-                of organic cosmetic products.
+              <p className="text-base text-foreground/80 leading-relaxed">
+                Founded in Nigeria in late 2023, Melodiva Skin Care was born out of a deep affection for pure, botanical beauty.
               </p>
-              <p className="text-foreground/70 mb-4">
-                We manufacture soaps and oils that take care of the skin, which is
-                the largest organ of the human body. We believe that everyone is
-                naturally beautiful, hence our soaps and oils are made from
-                organic plants that enhance natural beauty.
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                We blend native plant extracts into gentle soaps and oils that pamper and protect your skin every single day—enhancing your natural glow with zero harshness.
               </p>
-              <p className="text-foreground/70">
-                Our products are suitable for people of all ages, races, skin
-                types, and colors.
+              <p className="text-sm text-emerald-800 dark:text-emerald-300 leading-relaxed font-bold">
+                Thoughtfully created for every skin tone, age, and gentle routine.
               </p>
 
               {/* Feature Icons */}
-              <div className="grid grid-cols-2 gap-6 mt-8">
-                <div className="text-center">
-                  <Award className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
-                  <h6 className="font-semibold text-foreground">Premium Quality</h6>
-                  <small className="text-muted-foreground">Handcrafted with care</small>
+              <div className="grid grid-cols-2 gap-6 pt-4">
+                <div className="p-5 rounded-2xl bg-card border border-border/60 text-center hover:border-primary/40 transition-all shadow-sm">
+                  <Award className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <h6 className="font-bold text-foreground text-sm">Premium Quality</h6>
+                  <small className="text-muted-foreground text-xs">Handcrafted with care</small>
                 </div>
-                <div className="text-center">
-                  <Heart className="h-10 w-10 text-primary mx-auto mb-2 transition-transform transform hover:scale-110" />
-                  <h6 className="font-semibold text-foreground">Customer Love</h6>
-                  <small className="text-muted-foreground">Trusted by many</small>
+                <div className="p-5 rounded-2xl bg-card border border-border/60 text-center hover:border-primary/40 transition-all shadow-sm">
+                  <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <h6 className="font-bold text-foreground text-sm">Customer Love</h6>
+                  <small className="text-muted-foreground text-xs">Trusted nationwide</small>
                 </div>
               </div>
             </div>
 
             {/* Image Section */}
             <div className="text-center">
-              <img
-                src={melodivaLogo}
-                alt="About Melodiva"
-                className="rounded-lg shadow-lg mx-auto object-cover max-h-[400px] transition-transform transform hover:scale-105"
-              />
+              <div className="relative inline-block group">
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-3xl filter blur-2xl transform scale-95 group-hover:scale-100 transition-transform duration-700" />
+                <img
+                  src={melodivaLogo}
+                  alt="About Melodiva"
+                  className="relative rounded-3xl shadow-2xl mx-auto object-cover max-h-[440px] transition-transform duration-700 group-hover:scale-[1.02] border border-border/80"
+                />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Leaf className="h-8 w-8 text-primary" />
+      <section className="py-20 bg-secondary/30 border-y border-border/50">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mx-auto">
+            <div className="text-center p-6 rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 transition-all">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+                <Leaf className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">100% Natural</h3>
-              <p className="text-muted-foreground">
-                All our products are made from natural ingredients with no harmful chemicals.
+              <h3 className="text-lg font-bold mb-2">100% Natural</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Made from plant-based botanical ingredients with zero harsh chemicals.
               </p>
             </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Star className="h-8 w-8 text-primary" />
+            <div className="text-center p-6 rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 transition-all">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+                <Star className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Premium Quality</h3>
-              <p className="text-muted-foreground">
-                Crafted using traditional methods for maximum effectiveness
+              <h3 className="text-lg font-bold mb-2">Artisanal Quality</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Traditional cold-pressed formulation methods for maximum skin nourishment.
               </p>
             </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Heart className="h-8 w-8 text-primary" />
+            <div className="text-center p-6 rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 transition-all">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+                <Heart className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Skin Loving</h3>
-              <p className="text-muted-foreground">
-                Nourish and protect your skin with nature's best ingredients
+              <h3 className="text-lg font-bold mb-2">Skin Loving</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Protects skin moisture barriers and restores natural radiance.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Products Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Our Products</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience the transformative power of our carefully crafted natural skin care products
+      {/* Products Section - Horizontal Scrollable Shop Items */}
+      <section className="py-20 bg-background overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
+          <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+            <span className="text-xs uppercase tracking-widest font-extrabold text-primary px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-flex items-center gap-1.5 shadow-xs">
+              <Gift className="w-3.5 h-3.5 text-primary" />
+              <span>Organic Collection</span>
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+              Made for Your <span className="gradient-text">Daily Ritual</span>
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              Explore our gentle handcrafted black soaps and cold-pressed pure kernel oils created to cherish your skin.
             </p>
+            {/* Scroll Navigation Arrow Buttons */}
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollLeft}
+                className="rounded-full h-10 w-10 border-primary/30 bg-card hover:bg-primary/10 hover:text-primary transition-all shadow-sm"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollRight}
+                className="rounded-full h-10 w-10 border-primary/30 bg-card hover:bg-primary/10 hover:text-primary transition-all shadow-sm"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {products.slice(0, 2).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+
+          {/* Horizontal Scroll Track Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scroll-smooth overflow-y-hidden no-scrollbar"
+          >
+            {products
+              .filter((p) => p.id !== 'black-soap' && p.id !== 'kernel-oil')
+              .map((product) => (
+                <div key={product.id} className="snap-start shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+          </div>
+
+          {/* Call to Action to view full shop */}
+          <div className="text-center mt-8">
+            <Button asChild size="lg" className="btn-primary rounded-xl px-8 py-6 font-bold shadow-lg text-sm hover:scale-105 transition-all">
+              <Link to="/shop">
+                <span>View Full Shop Catalog ({products.length})</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-4xl font-bold mb-4">What Our Customers Say</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Real stories from people who love our products
+      <section className="py-20 bg-secondary/20 border-y border-border/50">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+            <span className="text-xs uppercase tracking-widest font-extrabold text-primary px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-flex items-center gap-1.5 shadow-xs">
+              <Star className="w-3.5 h-3.5 text-primary" />
+              <span>Customer Reviews & Love</span>
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+              Loved & Reviewed by <span className="gradient-text">Our Community</span>
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              Read real, heartfelt reviews from customers across Nigeria who cherish Melodiva in their daily skincare routine.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10">
-              <div className="flex items-center mb-4">
-                <div className="flex text-primary">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mx-auto">
+            {[
+              {
+                name: "Adaeze O.",
+                initials: "AO",
+                location: "Lagos, Nigeria",
+                rating: 5,
+                comment: "Melodiva's black soap has really transformed my skin! I've been using the Exquisite variant for a month and my skin has never felt smoother."
+              },
+              {
+                name: "Chidinma E.",
+                initials: "CE",
+                location: "Abuja, Nigeria",
+                rating: 5,
+                comment: "The kernel oil is pure magic! My hair and skin have never been healthier. It's now a permanent staple in my beauty routine."
+              },
+              {
+                name: "Funmi A.",
+                initials: "FA",
+                location: "Ibadan, Nigeria",
+                rating: 4,
+                comment: "Natural products that actually work! The perfume black soap smells amazing and leaves my skin glowing all day."
+              },
+              {
+                name: "Blessing K.",
+                initials: "BK",
+                location: "Port Harcourt, Nigeria",
+                rating: 5,
+                comment: "Fast delivery to Rivers State! The raw black soap tub is huge and lasts so long. Very gentle on sensitive skin."
+              },
+              {
+                name: "Tunde M.",
+                initials: "TM",
+                location: "Abeokuta, Nigeria",
+                rating: 4,
+                comment: "Impressive quality. The herbal black soap cleared my razor bumps within 2 weeks of consistent use."
+              }
+            ].map((review, idx) => (
+              <div key={idx} className="bg-card p-5 rounded-2xl shadow-sm hover:shadow-md border border-border/60 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex text-amber-400 dark:text-amber-300 mb-3 gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < review.rating ? 'fill-current' : 'text-muted/40 fill-none'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4 italic leading-relaxed">
+                    "{review.comment}"
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-2 border-t border-border/40">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xs shrink-0">
+                    {review.initials}
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-foreground leading-snug">{review.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{review.location}</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-muted-foreground mb-4 italic">
-                "Melodiva's black soap has really transformed my skin! I've been using the Exquisite variant for a month and my skin has never felt smoother. Highly recommend!"
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                  <span className="text-primary font-bold">A</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Adaeze O.</p>
-                  <p className="text-sm text-muted-foreground">Lagos, Nigeria</p>
-                </div>
+            ))}
+          </div>
+          <div className="text-center mt-10">
+            <Button asChild variant="outline" className="rounded-xl px-6 font-semibold hover:border-primary/50">
+              <Link to="/contact#review-section">Submit a Review</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section - REPLACED EMOJIS WITH LUCIDE ICONS */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+            <span className="text-xs uppercase tracking-widest font-extrabold text-primary px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-flex items-center gap-1.5 shadow-xs">
+              <Award className="w-3.5 h-3.5 text-primary" />
+              <span>Why Melodiva</span>
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+              Thoughtful Care in <span className="gradient-text">Every Batch</span>
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              Our quiet commitment to pure ingredients, gentle formulations, and warm customer care across Nigeria.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-2xl bg-card border border-primary/10 shadow-sm hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Leaf className="h-6 w-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-foreground">Naturally Sourced</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  All ingredients sourced directly from local Nigerian farmers, supporting sustainable communities.
+                </p>
               </div>
             </div>
 
-            <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '100ms' }}>
-              <div className="flex items-center mb-4">
-                <div className="flex text-primary">
-                  {[...Array(4)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
-                </div>
+            <div className="p-6 rounded-2xl bg-card border border-primary/10 shadow-sm hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Truck className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-muted-foreground mb-4 italic">
-                "The kernel oil is pure magic! My hair has never been healthier. It's now a staple in my beauty routine. Worth every naira!"
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                  <span className="text-primary font-bold">C</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Chidinma E.</p>
-                  <p className="text-sm text-muted-foreground">Abuja, Nigeria</p>
-                </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-foreground">Fast Delivery</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Lagos doorstep dispatch & nationwide interstate waybill delivery (Hub-to-Hub or Doorstep).
+                </p>
               </div>
             </div>
 
-            <div className="bg-card p-6 rounded-lg shadow-lg hover-scale animate-fade-in border border-primary/10" style={{ animationDelay: '200ms' }}>
-              <div className="flex items-center mb-4">
-                <div className="flex text-primary">
-                  {[...Array(4)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
-                </div>
+            <div className="p-6 rounded-2xl bg-card border border-primary/10 shadow-sm hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Heart className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-muted-foreground mb-4 italic">
-                "Natural products that actually work! The perfume black soap smells amazing and leaves my skin glowing. Customer service is excellent too!"
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                  <span className="text-primary font-bold">F</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Funmi A.</p>
-                  <p className="text-sm text-muted-foreground">Ibadan, Nigeria</p>
-                </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-foreground">Made with Love in Nigeria</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Locally made. Naturally pure. Thoughtfully created for every skin type and age.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-primary/10 shadow-sm hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Gift className="h-6 w-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-foreground">Exclusive Rewards</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Join our affiliate program and earn commissions when friends buy using your unique referral code.
+                </p>
               </div>
             </div>
           </div>
         </div>
-        <Button asChild size="lg" className="text-lg px-8 mt-20 flex justify-center items-center ml-20 mr-20" >
-          <Link to="/contact">Submit a Review</Link>
-        </Button>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6 animate-fade-in">Why Choose Melodiva?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-              <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in">
-                <div className="text-4xl mb-4">🌿</div>
-                <h3 className="text-xl font-semibold mb-2">Naturally Sourced</h3>
-                <p className="text-muted-foreground">
-                  All ingredients sourced directly from local Nigerian farmers, supporting communities
-                </p>
-              </div>
-              <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <div className="text-4xl mb-4">🚛</div>
-                <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
-                <p className="text-muted-foreground">
-                  Quick and reliable delivery across Nigeria. Lagos orders delivered within 24-48 hours
-                </p>
-              </div>
-              <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '200ms' }}>
-                <div className="text-4xl mb-4">💚</div>
-                <h3 className="text-xl font-semibold mb-2">Made with Love in Nigeria</h3>
-                <p className="text-muted-foreground">
-                  Locally made. Naturally pure. Thoughtfully created for every skin type
-                </p>
-              </div>
-              <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-primary/20 hover-scale animate-fade-in" style={{ animationDelay: '300ms' }}>
-                <div className="text-4xl mb-4">🎁</div>
-                <h3 className="text-xl font-semibold mb-2">Exclusive Rewards</h3>
-                <p className="text-muted-foreground">
-                  Join our affiliate program and earn when users buy products using your unique code.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* FAQ Section Integrated on Home Page */}
+      <FAQSection className="bg-secondary/10 rounded-3xl my-10 border border-border/40" />
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground mt-20">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-r from-primary via-emerald-800 to-green-900 text-white rounded-3xl mx-4 md:mx-10 my-16 shadow-2xl relative overflow-hidden border border-white/10">
+        {/* Ambient Glowing Background Orbs */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-4 text-center relative z-10 max-w-3xl space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-emerald-200">
+            <Gift className="h-3.5 w-3.5 text-emerald-300" />
+            <span>Earn With Melodiva</span>
+          </div>
+
           {isAffiliate ? (
             <>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Your Affiliate Dashboard
+              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                Your Affiliate <span className="text-emerald-300">Dashboard</span>
               </h2>
-              <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-                Track your commissions, view your earnings, and manage your affiliate account all in one place.
+              <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto leading-relaxed font-light">
+                Track your real-time commissions, manage your custom 5% referral discount codes, and monitor your earnings.
               </p>
-              <Button asChild size="lg" variant="secondary" className="text-lg px-8">
-                <Link to="/affiliate-dashboard">Go to Dashboard</Link>
-              </Button>
+              <div className="pt-2">
+                <Button asChild size="lg" className="bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-bold px-9 py-6 text-base shadow-xl hover:scale-105 active:scale-95 transition-all duration-300">
+                  <Link to="/affiliate-dashboard">
+                    <span>Go to Dashboard</span>
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
             </>
           ) : (
             <>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Join Our Affiliate Program
+              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                Join Our <span className="text-emerald-300">Affiliate Program</span>
               </h2>
-              <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-                Earn commissions when customers buy our products through your code. Get your unique referral code today!
+              <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto leading-relaxed font-light">
+                Earn steady commissions on every order made with your code. Give your followers 5% off while earning extra income!
               </p>
-              <Button asChild size="lg" variant="secondary" className="text-lg px-8">
-                <Link to="/affiliate">Learn More</Link>
-              </Button>
+              <div className="pt-2">
+                <Button asChild size="lg" className="bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-bold px-9 py-6 text-base shadow-xl hover:scale-105 active:scale-95 transition-all duration-300">
+                  <Link to="/affiliate">
+                    <span>Become an Affiliate</span>
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
             </>
           )}
         </div>

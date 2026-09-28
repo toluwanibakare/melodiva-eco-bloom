@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, CreditCard } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, CreditCard, Truck, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { nigeriaStates } from '@/data/nigeriaLocations';
+import { DELIVERY_OPTIONS, getDeliveryOptionsForState, DeliveryOption } from '@/data/deliveryOptions';
 
 // Declare Paystack types for TypeScript
 declare global {
@@ -56,33 +59,33 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [paystackLoaded, setPaystackLoaded] = useState(false);
-  const [deliveryFee, setDeliveryFee] = useState(1500);
+  
+  // Delivery Fee & Option State
+  const [selectedOptionId, setSelectedOptionId] = useState<string>('lagos_doorstep');
+  const [deliveryFee, setDeliveryFee] = useState<number>(2500);
 
-  // Delivery Fee Logic
+  // Available delivery options based on state
+  const availableDeliveryOptions = getDeliveryOptionsForState(deliveryState);
+
+  // Update delivery option & fee when state changes
   useEffect(() => {
-    const feeMap: Record<string, number> = {
-      'lagos': 1500,
-      'ogun': 2000,
-      'abuja': 3000,
-      'rivers': 3000,
-      'kano': 3500,
-      // Add more principal states here
-    };
-
-    const stateLower = deliveryState.toLowerCase().trim();
-
-    if (stateLower === '') {
-      setDeliveryFee(1500); // Default/Base
-      return;
-    }
-
-    // specific check or default for others
-    if (feeMap[stateLower]) {
-      setDeliveryFee(feeMap[stateLower]);
-    } else {
-      setDeliveryFee(4000); // Default for other states/interstate
+    const isLagos = deliveryState.trim().toLowerCase() === 'lagos';
+    if (isLagos) {
+      const lagosOpt = DELIVERY_OPTIONS.find((o) => o.id === 'lagos_doorstep')!;
+      setSelectedOptionId(lagosOpt.id);
+      setDeliveryFee(lagosOpt.price);
+    } else if (deliveryState.trim() !== '') {
+      // Default interstate option
+      const interstateOpt = DELIVERY_OPTIONS.find((o) => o.id === 'interstate_doorstep')!;
+      setSelectedOptionId(interstateOpt.id);
+      setDeliveryFee(interstateOpt.price);
     }
   }, [deliveryState]);
+
+  const handleOptionSelect = (option: DeliveryOption) => {
+    setSelectedOptionId(option.id);
+    setDeliveryFee(option.price);
+  };
 
   useEffect(() => {
     // Load Paystack script
@@ -377,58 +380,93 @@ const Checkout = () => {
           <Card className="p-6">
             <h2 className="text-2xl font-bold mb-6">Delivery Information</h2>
             <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="state">State *</Label>
+                  <Select
+                    value={deliveryState}
+                    onValueChange={(val) => {
+                      setDeliveryState(val);
+                      setDeliveryCity('');
+                    }}
+                  >
+                    <SelectTrigger id="state">
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nigeriaStates.map((s) => (
+                        <SelectItem key={s.state} value={s.state}>
+                          {s.state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="city">City / LGA *</Label>
+                  {deliveryState ? (
+                    <Select
+                      value={deliveryCity}
+                      onValueChange={(val) => setDeliveryCity(val)}
+                    >
+                      <SelectTrigger id="city">
+                        <SelectValue placeholder="Select City / LGA" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nigeriaStates
+                          .find((s) => s.state === deliveryState)
+                          ?.cities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="city"
+                      value={deliveryCity}
+                      onChange={(e) => setDeliveryCity(e.target.value)}
+                      placeholder="Select a state first"
+                      disabled
+                    />
+                  )}
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="address">Delivery Address *</Label>
                 <Input
                   id="address"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  placeholder="Enter your delivery address"
+                  placeholder="Street address, house number, landmarks"
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="state">State *</Label>
+                  <Label htmlFor="phone">Phone Number *</Label>
                   <Input
-                    id="state"
-                    value={deliveryState}
-                    onChange={(e) => setDeliveryState(e.target.value)}
-                    placeholder="State"
+                    id="phone"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="080xxxxxxxx"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="city">City *</Label>
+                  <Label htmlFor="whatsapp">WhatsApp Number (Optional)</Label>
                   <Input
-                    id="city"
-                    value={deliveryCity}
-                    onChange={(e) => setDeliveryCity(e.target.value)}
-                    placeholder="City"
-                    required
+                    id="whatsapp"
+                    type="tel"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="080xxxxxxxx"
                   />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="080xxxxxxxx"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="whatsapp">WhatsApp Number (Optional)</Label>
-                <Input
-                  id="whatsapp"
-                  type="tel"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
-                  placeholder="080xxxxxxxx"
-                />
               </div>
 
               {/* Display Referral Information */}
@@ -446,6 +484,61 @@ const Checkout = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </Card>
+
+          {/* Delivery Method Selection Card */}
+          <Card className="p-6 mt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Truck className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-bold">Delivery Method</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {deliveryState
+                ? `Delivery options available for ${deliveryState}:`
+                : 'Select your state above to see exact delivery options.'}
+            </p>
+
+            <div className="space-y-3">
+              {availableDeliveryOptions.map((option) => {
+                const isSelected = selectedOptionId === option.id;
+                return (
+                  <div
+                    key={option.id}
+                    onClick={() => handleOptionSelect(option)}
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground text-base">
+                            {option.title}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                            {option.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>Delivery is by: <strong>{option.carrierText}</strong></span>
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-lg font-bold text-primary block">
+                          {formatPrice(option.price)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Range: {formatPrice(option.minPrice)} – {formatPrice(option.maxPrice)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </Card>
 

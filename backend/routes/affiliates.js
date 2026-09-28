@@ -97,14 +97,25 @@ router.get('/dashboard', authenticate, async (req, res) => {
 
     const affiliate = affiliates[0];
 
-    // Get referrals
+    // Get referrals with full order & customer details
     const [referrals] = await pool.execute(
-      `SELECT id, order_id, commission_amount, status, created_at
-       FROM affiliate_referrals 
-       WHERE affiliate_id = ? 
-       ORDER BY created_at DESC`,
+      `SELECT ar.id, ar.order_id, ar.commission_amount, ar.status, ar.created_at,
+              o.order_number, o.items, o.subtotal, o.discount, o.delivery_fee, o.total as order_total,
+              o.delivery_address, o.delivery_city, o.delivery_state, o.phone_number, o.whatsapp_number,
+              o.payment_status, o.status as order_status,
+              u.full_name as customer_name, u.email as customer_email
+       FROM affiliate_referrals ar
+       LEFT JOIN orders o ON (ar.order_id = o.order_number OR ar.order_id = o.id)
+       LEFT JOIN users u ON ar.referred_user_id = u.id
+       WHERE ar.affiliate_id = ? 
+       ORDER BY ar.created_at DESC`,
       [affiliate.id]
     );
+
+    const referralsWithParsedItems = referrals.map(ref => ({
+      ...ref,
+      items: typeof ref.items === 'string' ? JSON.parse(ref.items) : (ref.items || [])
+    }));
 
     // Get withdrawals
     const [withdrawals] = await pool.execute(
@@ -118,7 +129,7 @@ router.get('/dashboard', authenticate, async (req, res) => {
 
     res.json({
       affiliate,
-      referrals,
+      referrals: referralsWithParsedItems,
       withdrawals
     });
   } catch (error) {

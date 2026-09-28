@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,12 +9,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { api } from "@/lib/api";
+import FAQSection from "@/components/FAQSection";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [review, setReview] = useState({ name: "", rating: "", comment: "", isAnonymous: false });
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (window.location.hash === '#review-section') {
+      const element = document.getElementById('review-section');
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+    }
+  }, []);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,43 +80,45 @@ export default function ContactPage() {
   };
 
   return (
-    <section className="py-16 px-6 md:px-16 bg-background min-h-screen">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-foreground mb-4">
-          Contact Us
-        </h1>
-        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Have questions, feedback, or want to partner with us? We'd love to hear from you!
-        </p>
+    <section className="py-16 px-4 sm:px-6 md:px-10 lg:px-12 bg-background min-h-screen">
+      <div className="max-w-[1600px] mx-auto space-y-12">
+        <div>
+          <h1 className="text-4xl font-bold text-center text-foreground mb-4">
+            Contact Us
+          </h1>
+          <p className="text-center text-muted-foreground max-w-2xl mx-auto text-sm">
+            Have questions, feedback, or want to partner with us? We'd love to hear from you!
+          </p>
+        </div>
 
         {/* Contact Info & Form */}
-        <div className="grid md:grid-cols-2 gap-8 mb-10">
-          <Card className="p-6 bg-card border-border animate-fade-in">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Get in Touch</h3>
-            <p className="text-muted-foreground mb-6">
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card className="p-6 bg-card border-border shadow-sm rounded-2xl animate-fade-in">
+            <h3 className="text-xl font-bold text-foreground mb-4">Get in Touch</h3>
+            <p className="text-sm text-muted-foreground mb-6">
               Reach out anytime for inquiries or partnerships!
             </p>
-            <ul className="space-y-3 text-foreground">
-              <li className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+            <ul className="space-y-4 text-sm text-foreground">
+              <li className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <span><strong>Address:</strong> Lagos, Nigeria</span>
               </li>
 
-              <li className="flex items-start gap-2">
-                <Mail className="h-5 w-5 text-primary mt-0.5" />
+              <li className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <span><strong>Email:</strong> melodivaproducts@gmail.com</span>
               </li>
 
-              <li className="flex items-start gap-2">
-                <FaWhatsapp className="h-5 w-5 text-primary mt-0.5" />
-                <span><strong>WhatsApp:</strong> +234 801 234 5678</span>
+              <li className="flex items-start gap-3">
+                <FaWhatsapp className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <span><strong>WhatsApp:</strong> +234 807 872 5283</span>
               </li>
             </ul>
           </Card>
 
           {/* Contact Form */}
-          <Card className="p-6 bg-card border-border animate-fade-in">
-            <h4 className="text-lg font-semibold text-foreground mb-4">Send a Message</h4>
+          <Card className="p-6 bg-card border-border shadow-sm rounded-2xl animate-fade-in">
+            <h4 className="text-lg font-bold text-foreground mb-4">Send a Message</h4>
             <form onSubmit={handleContactSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="name">Full Name</Label>
@@ -139,7 +153,7 @@ export default function ContactPage() {
                   className="min-h-[100px]"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" className="w-full rounded-xl btn-primary" disabled={submitting}>
                 {submitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
@@ -147,8 +161,8 @@ export default function ContactPage() {
         </div>
 
         {/* Review Section */}
-        <Card className="p-6 bg-card border-border animate-fade-in">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Leave a Review</h3>
+        <Card id="review-section" className="p-6 bg-card border-border shadow-sm rounded-2xl animate-fade-in scroll-mt-28">
+          <h3 className="text-xl font-bold text-foreground mb-4">Leave a Product Review</h3>
           <form onSubmit={handleReviewSubmit} className="space-y-4">
             <div>
               <Label htmlFor="reviewName">Your Name</Label>
@@ -200,11 +214,14 @@ export default function ContactPage() {
                 className="min-h-[100px]"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full rounded-xl btn-primary" disabled={submitting}>
               {submitting ? "Submitting..." : "Submit Review"}
             </Button>
           </form>
         </Card>
+
+        {/* Embedded FAQ Section */}
+        <FAQSection className="pt-8" />
       </div>
     </section>
   );

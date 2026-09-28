@@ -3,15 +3,7 @@ import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, X } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Search, Filter, X, Leaf, SlidersHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Shop = () => {
@@ -19,20 +11,18 @@ const Shop = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = !selectedType || product.type === selectedType;
-      const matchesVariant =
-        !selectedVariant ||
-        product.variants?.some((v) => v.variant === selectedVariant);
+  // Exclude duplicate umbrella items if individual sizes exist or show full catalog
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = !selectedType || product.type === selectedType;
+    const matchesVariant =
+      !selectedVariant ||
+      product.variants?.some((v) => v.variant === selectedVariant);
 
-      return matchesSearch && matchesType && matchesVariant;
-    })
-    .slice(2);
-
+    return matchesSearch && matchesType && matchesVariant;
+  });
 
   const clearFilters = () => {
     setSelectedType(null);
@@ -43,147 +33,124 @@ const Shop = () => {
   const activeFiltersCount = [selectedType, selectedVariant].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header Section */}
-        <div className="mb-12 animate-fade-in">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Our Products
+    <div className="min-h-screen bg-background">
+      {/* Header Banner */}
+      <div className="bg-secondary/30 border-b border-border/50 py-12 px-4 hero-glow">
+        <div className="container mx-auto text-center max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <Leaf className="h-3.5 w-3.5" />
+            <span>Organic Skincare Catalog</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+            Explore Our <span className="gradient-text">Products</span>
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Discover our range of natural skin care products
+          <p className="text-muted-foreground text-sm max-w-xl mx-auto leading-relaxed">
+            Discover cold-pressed palm kernel oils and handcrafted African black soap formulations for healthy, radiant skin.
           </p>
         </div>
+      </div>
 
-        {/* Search and Filter Bar */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 animate-fade-in">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 transition-all duration-300 focus:ring-2 focus:ring-primary"
-            />
+      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 py-10 max-w-[1600px]">
+        {/* Search & Filter Controls */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search Input */}
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search soaps, oils, sizes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11 rounded-xl bg-card border-border/80 focus:border-primary transition-all duration-300"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Quick Category Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <Button
+                variant={selectedType === null && selectedVariant === null ? 'default' : 'outline'}
+                size="sm"
+                onClick={clearFilters}
+                className="rounded-full text-xs font-semibold"
+              >
+                All Products ({products.length})
+              </Button>
+              <Button
+                variant={selectedType === 'black-soap' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedType(selectedType === 'black-soap' ? null : 'black-soap')}
+                className="rounded-full text-xs font-semibold"
+              >
+                Black Soaps
+              </Button>
+              <Button
+                variant={selectedType === 'kernel-oil' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedType(selectedType === 'kernel-oil' ? null : 'kernel-oil')}
+                className="rounded-full text-xs font-semibold"
+              >
+                Kernel Oils
+              </Button>
+            </div>
           </div>
 
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="lg" className="relative h-12 px-6 hover-scale">
-                <Filter className="mr-2 h-5 w-5" />
-                Filters
-                {activeFiltersCount > 0 && (
-                  <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Filter Products</SheetTitle>
-                <SheetDescription>
-                  Refine your product selection
-                </SheetDescription>
-              </SheetHeader>
-
-              <div className="mt-6 space-y-6">
-                {/* Product Type Filter */}
-                <div>
-                  <h3 className="font-semibold mb-3">Product Type</h3>
-                  <div className="space-y-2">
-                    <Button
-                      variant={selectedType === 'black-soap' ? 'default' : 'outline'}
-                      className="w-full justify-start transition-all duration-300"
-                      onClick={() => setSelectedType(selectedType === 'black-soap' ? null : 'black-soap')}
-                    >
-                      Black Soap
-                    </Button>
-                    <Button
-                      variant={selectedType === 'kernel-oil' ? 'default' : 'outline'}
-                      className="w-full justify-start transition-all duration-300"
-                      onClick={() => setSelectedType(selectedType === 'kernel-oil' ? null : 'kernel-oil')}
-                    >
-                      Kernel Oil
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Variant Filter (for Black Soap) */}
-                <div>
-                  <h3 className="font-semibold mb-3">Black Soap Variants</h3>
-                  <div className="space-y-2">
-                    {['exquisite', 'perfume', 'natural'].map((variant) => (
-                      <Button
-                        key={variant}
-                        variant={selectedVariant === variant ? 'default' : 'outline'}
-                        className="w-full justify-start transition-all duration-300 capitalize"
-                        onClick={() => setSelectedVariant(selectedVariant === variant ? null : variant)}
-                      >
-                        {variant}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Clear Filters */}
-                {activeFiltersCount > 0 && (
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    onClick={clearFilters}
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Clear All Filters
-                  </Button>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+          {/* Sub-variant Pills for Black Soap */}
+          {selectedType === 'black-soap' && (
+            <div className="flex items-center gap-2 pt-2 animate-fade-in text-xs">
+              <span className="text-muted-foreground font-medium">Soap Variant:</span>
+              {['exquisite', 'perfume', 'natural'].map((variant) => (
+                <Badge
+                  key={variant}
+                  variant={selectedVariant === variant ? 'default' : 'outline'}
+                  onClick={() => setSelectedVariant(selectedVariant === variant ? null : variant)}
+                  className="cursor-pointer capitalize px-3 py-1 rounded-full text-xs"
+                >
+                  {variant}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Active Filters Display */}
-        {activeFiltersCount > 0 && (
-          <div className="mb-6 flex flex-wrap gap-2 animate-fade-in">
-            {selectedType && (
-              <Badge variant="secondary" className="px-3 py-1 hover-scale cursor-pointer capitalize" onClick={() => setSelectedType(null)}>
-                {selectedType.replace('-', ' ')}
-                <X className="ml-2 h-3 w-3" />
-              </Badge>
-            )}
-            {selectedVariant && (
-              <Badge variant="secondary" className="px-3 py-1 hover-scale cursor-pointer capitalize" onClick={() => setSelectedVariant(null)}>
-                {selectedVariant}
-                <X className="ml-2 h-3 w-3" />
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Results Count */}
-        <div className="mb-6 text-sm text-muted-foreground animate-fade-in">
-          Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+        {/* Active Filters Counter */}
+        <div className="mb-6 flex items-center justify-between text-xs text-muted-foreground">
+          <span>Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}</span>
+          {activeFiltersCount > 0 && (
+            <button onClick={clearFilters} className="text-primary hover:underline flex items-center gap-1 font-semibold">
+              <X className="h-3.5 w-3.5" /> Clear Filters
+            </button>
+          )}
         </div>
 
         {/* Products Grid */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${index * 60}ms` }}
               >
                 <ProductCard product={product} />
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 animate-fade-in">
-            <p className="text-xl text-muted-foreground mb-4">No products found</p>
-            <Button onClick={clearFilters} variant="outline">
-              Clear Filters
+          <div className="text-center py-20 bg-card rounded-2xl border border-border">
+            <SlidersHorizontal className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <p className="text-lg font-bold text-foreground mb-1">No products match your search</p>
+            <p className="text-xs text-muted-foreground mb-4">Try clearing filters or searching for another term.</p>
+            <Button onClick={clearFilters} variant="outline" size="sm" className="rounded-xl">
+              Clear All Filters
             </Button>
           </div>
         )}

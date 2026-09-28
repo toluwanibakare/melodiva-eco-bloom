@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,17 +24,59 @@ import OrderSuccess from "./pages/OrderSuccess";
 import Pricing from "./pages/Pricing";
 import AdminPanel from "./pages/AdminPanel";
 import Checklist from "./pages/Checklist";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ReturnsPolicy from "./pages/ReturnsPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import ShippingInfo from "./pages/ShippingInfo";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
 
 const queryClient = new QueryClient();
 
+// ScrollToTop helper component to reset scroll position on route change
+const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname, hash]);
+
+  return null;
+};
+
 const MainLayout = () => {
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  if (isAdminRoute) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/admin/*" element={<AdminPanel />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </main>
+    );
+  }
+
   const isChecklistPage = location.pathname === "/checklist";
+  const isProductDetailPage = location.pathname.startsWith("/product/");
+
+  const hideFooterRoutes = [
+    "/checklist",
+    "/privacy-policy",
+    "/privacy",
+    "/returns",
+    "/return-policy",
+    "/terms-and-conditions",
+    "/terms",
+  ];
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isChecklistPage && <Header />}
+      {!isChecklistPage && !isProductDetailPage && <Header />}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -49,14 +92,24 @@ const MainLayout = () => {
           <Route path="/affiliate-dashboard" element={<AffiliateDashboard />} />
           <Route path="/order-history" element={<OrderHistory />} />
           <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/order-tracking" element={<OrderTracking />} />
           <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
-          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+          <Route path="/track" element={<OrderTracking />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/checklist" element={<Checklist />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/returns" element={<ReturnsPolicy />} />
+          <Route path="/return-policy" element={<ReturnsPolicy />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/shipping" element={<ShippingInfo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isChecklistPage && <Footer />}
+      {!shouldHideFooter && <Footer />}
+      <WhatsAppButton />
     </div>
   );
 };
@@ -67,9 +120,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <MainLayout />
-        {/* WhatsApp floating button appears on every page */}
-        <WhatsAppButton />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

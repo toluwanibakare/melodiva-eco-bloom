@@ -165,10 +165,11 @@ router.get('/my-orders', authenticate, async (req, res) => {
   }
 });
 
-// Get single order
-router.get('/:orderId', authenticate, async (req, res) => {
+// Public Order Tracking (NO sign in required!)
+router.get('/track/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
+    const cleanId = orderId.trim();
 
     const [orders] = await pool.execute(
       `SELECT id, order_number, items, subtotal, discount, delivery_fee, total,
@@ -176,8 +177,49 @@ router.get('/:orderId', authenticate, async (req, res) => {
               phone_number, whatsapp_number, payment_status, payment_reference,
               status, created_at, updated_at
        FROM orders 
-       WHERE id = ? AND user_id = ?`,
-      [orderId, req.user.id]
+       WHERE id = ? OR order_number = ? OR payment_reference = ?`,
+      [cleanId, cleanId, cleanId]
+    );
+
+    if (orders.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = orders[0];
+    order.items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+
+    // Get order status timeline history
+    const [history] = await pool.execute(
+      `SELECT id, order_id, status, notes, created_at
+       FROM order_status_history 
+       WHERE order_id = ? OR order_id = ?
+       ORDER BY created_at DESC`,
+      [order.id, order.order_number]
+    );
+
+    order.history = history;
+
+    res.json(order);
+  } catch (error) {
+    console.error('Public track order error:', error);
+    res.status(500).json({ error: 'Failed to track order' });
+  }
+});
+
+// Get single order (with fallback for authenticated user)
+router.get('/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const cleanId = orderId.trim();
+
+    const [orders] = await pool.execute(
+      `SELECT id, order_number, items, subtotal, discount, delivery_fee, total,
+              affiliate_code, delivery_address, delivery_state, delivery_city,
+              phone_number, whatsapp_number, payment_status, payment_reference,
+              status, created_at, updated_at
+       FROM orders 
+       WHERE id = ? OR order_number = ? OR payment_reference = ?`,
+      [cleanId, cleanId, cleanId]
     );
 
     if (orders.length === 0) {
