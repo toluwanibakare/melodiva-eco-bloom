@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { HelpCircle, LifeBuoy } from 'lucide-react';
 import { FAQS } from '@/data/faqs';
 import {
@@ -19,14 +18,6 @@ export const FAQSection = ({
   subtitle = "Got questions about our natural skincare products, delivery across Nigeria, or affiliate program? Find your answers below.",
   className = "",
 }: FAQSectionProps) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-
-  const categories = ['All', 'Products', 'Delivery', 'Orders & Refunds', 'Affiliates'];
-
-  const filteredFaqs = selectedCategory === 'All'
-    ? FAQS
-    : FAQS.filter(faq => faq.category === selectedCategory);
-
   return (
     <section className={`py-16 px-4 max-w-4xl mx-auto ${className}`}>
       <div className="text-center mb-10 space-y-3">
@@ -44,30 +35,10 @@ export const FAQSection = ({
         )}
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8">
-        {categories.map((cat) => {
-          const isActive = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                  : 'bg-secondary/70 text-secondary-foreground hover:bg-secondary hover:scale-102'
-              }`}
-            >
-              {cat}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Accordion Component */}
       <div className="bg-card/70 backdrop-blur-md rounded-2xl border border-primary/10 p-6 shadow-sm">
         <Accordion type="single" collapsible className="w-full space-y-3">
-          {filteredFaqs.map((faq) => (
+          {FAQS.map((faq) => (
             <AccordionItem
               key={faq.id}
               value={faq.id}

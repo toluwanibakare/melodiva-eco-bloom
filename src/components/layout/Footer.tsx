@@ -156,24 +156,24 @@ const Footer = () => {
           {/* Contact Info Column */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-primary">Get In Touch</h3>
-            <ul className="space-y-3 text-xs text-zinc-400">
-              <li className="flex items-start gap-2.5">
-                <div className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-primary shrink-0 mt-0.5">
+            <ul className="space-y-3.5 text-xs text-zinc-400">
+              <li className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 text-primary flex items-center justify-center shrink-0">
                   <Mail className="h-3.5 w-3.5" />
                 </div>
-                <span>melodivaproducts@gmail.com</span>
+                <span className="font-medium text-zinc-300">melodivaproducts@gmail.com</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <div className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-primary shrink-0 mt-0.5">
+              <li className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 text-primary flex items-center justify-center shrink-0">
                   <Phone className="h-3.5 w-3.5" />
                 </div>
-                <span>+234 807 872 5283</span>
+                <span className="font-medium text-zinc-300">+234 807 872 5283</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <div className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-primary shrink-0 mt-0.5">
+              <li className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 text-primary flex items-center justify-center shrink-0">
                   <MapPin className="h-3.5 w-3.5" />
                 </div>
-                <span>Lagos, Nigeria</span>
+                <span className="font-medium text-zinc-300">Lagos, Nigeria</span>
               </li>
             </ul>
           </div>

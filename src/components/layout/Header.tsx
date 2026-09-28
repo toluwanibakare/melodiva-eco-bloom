@@ -1,4 +1,5 @@
 import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard, Store, PhoneCall, Home as HomeIcon, ShieldCheck, Leaf, Truck, HelpCircle, ChevronDown, MessageCircle, FileText } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -112,7 +113,7 @@ const Header = () => {
     <div className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Top Announcement Bar (Shows only at top of page) */}
       {!scrolled && (
-        <div className="bg-primary/95 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-primary/20 animate-fade-in">
+        <div className="hidden md:block bg-primary/95 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-primary/20 animate-fade-in">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2 mx-auto md:mx-0">
               <Leaf className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
@@ -331,13 +332,13 @@ const Header = () => {
                             key={item.name}
                             to={item.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                            className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${
                               isActive
-                                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                                : 'text-foreground/80 hover:bg-secondary/70'
+                                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
+                                : 'text-foreground/90 hover:bg-secondary/70'
                             }`}
                           >
-                            <IconComp className="h-4 w-4" />
+                            <IconComp className="h-5 w-5 shrink-0" />
                             <span>{item.name}</span>
                           </Link>
                         );
@@ -345,38 +346,38 @@ const Header = () => {
                     </nav>
 
                     {/* Policy Shortcuts Grid */}
-                    <div className="mt-6 pt-4 border-t border-border">
-                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground px-1 mb-2">
+                    <div className="mt-8 pt-6 border-t border-border/80">
+                      <p className="text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground px-1 mb-3">
                         Information & Policies
                       </p>
-                      <div className="grid grid-cols-2 gap-1.5 text-xs font-medium">
+                      <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
                         <Link
                           to="/shipping"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="p-2 rounded-xl bg-secondary/40 hover:bg-secondary/80 flex items-center gap-1.5 text-foreground/80 text-[11px]"
+                          className="p-3 rounded-2xl bg-secondary/50 hover:bg-secondary flex items-center gap-2.5 text-foreground text-xs font-bold transition-all border border-border/40"
                         >
-                          <Truck className="w-3.5 h-3.5 text-primary" /> Shipping
+                          <Truck className="w-4 h-4 text-primary shrink-0" /> Shipping
                         </Link>
                         <Link
                           to="/returns"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="p-2 rounded-xl bg-secondary/40 hover:bg-secondary/80 flex items-center gap-1.5 text-foreground/80 text-[11px]"
+                          className="p-3 rounded-2xl bg-secondary/50 hover:bg-secondary flex items-center gap-2.5 text-foreground text-xs font-bold transition-all border border-border/40"
                         >
-                          <FileText className="w-3.5 h-3.5 text-primary" /> Refunds
+                          <FileText className="w-4 h-4 text-primary shrink-0" /> Refunds
                         </Link>
                         <Link
                           to="/privacy"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="p-2 rounded-xl bg-secondary/40 hover:bg-secondary/80 flex items-center gap-1.5 text-foreground/80 text-[11px]"
+                          className="p-3 rounded-2xl bg-secondary/50 hover:bg-secondary flex items-center gap-2.5 text-foreground text-xs font-bold transition-all border border-border/40"
                         >
-                          <HelpCircle className="w-3.5 h-3.5 text-primary" /> Privacy
+                          <HelpCircle className="w-4 h-4 text-primary shrink-0" /> Privacy
                         </Link>
                         <Link
                           to="/terms"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="p-2 rounded-xl bg-secondary/40 hover:bg-secondary/80 flex items-center gap-1.5 text-foreground/80 text-[11px]"
+                          className="p-3 rounded-2xl bg-secondary/50 hover:bg-secondary flex items-center gap-2.5 text-foreground text-xs font-bold transition-all border border-border/40"
                         >
-                          <FileText className="w-3.5 h-3.5 text-primary" /> Terms
+                          <FileText className="w-4 h-4 text-primary shrink-0" /> Terms
                         </Link>
                       </div>
                     </div>
@@ -434,9 +435,9 @@ const Header = () => {
                       href="https://wa.me/2348078725283"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 transition-all"
+                      className="flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm border border-emerald-500/30 transition-all shadow-xs"
                     >
-                      <MessageCircle className="w-4 h-4" /> Need Help? Chat on WhatsApp
+                      <FaWhatsapp className="w-4.5 h-4.5 text-emerald-500 shrink-0" /> Need Help? Chat on WhatsApp
                     </a>
                   </div>
                 </SheetContent>
