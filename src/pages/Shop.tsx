@@ -11,8 +11,9 @@ const Shop = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
-  // Exclude duplicate umbrella items if individual sizes exist or show full catalog
-  const filteredProducts = products.filter((product) => {
+  const catalogProducts = products.filter((p) => p.id !== 'black-soap' && p.id !== 'kernel-oil');
+
+  const filteredProducts = catalogProducts.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -82,7 +83,7 @@ const Shop = () => {
                 onClick={clearFilters}
                 className="rounded-full text-xs font-semibold"
               >
-                All Products ({products.length})
+                All Products ({catalogProducts.length})
               </Button>
               <Button
                 variant={selectedType === 'black-soap' ? 'default' : 'outline'}
