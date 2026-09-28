@@ -212,24 +212,6 @@ export default function Auth() {
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground">Welcome to Melodiva</h1>
           <p className="text-muted-foreground mt-1 text-sm">Natural beauty, naturally yours</p>
-
-          <div className="mt-4">
-            <Button
-              type="button"
-              onClick={() => {
-                api.enableDemoMode();
-                auth.notify('SIGNED_IN', { user: { email: 'demo@melodivaskincare.com' } });
-                toast({
-                  title: 'Logged in as Demo User',
-                  description: 'Welcome to Melodiva Demo Account!',
-                });
-                navigate('/');
-              }}
-              className="w-full btn-primary font-bold text-sm rounded-xl py-5 shadow-sm"
-            >
-              Use Demo Account
-            </Button>
-          </div>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">

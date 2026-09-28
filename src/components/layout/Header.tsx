@@ -6,7 +6,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/co
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/store/cartStore';
 import { api, auth } from '@/lib/api';
-import { demoStore } from '@/lib/demoStore';
 import { useState, useEffect, useMemo } from 'react';
 import {
   DropdownMenu,
@@ -428,18 +427,7 @@ const Header = () => {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Button
-                          onClick={() => {
-                            api.enableDemoMode();
-                            auth.notify('SIGNED_IN', { user: { email: 'demo@melodivaskincare.com' } });
-                            setMobileMenuOpen(false);
-                            navigate('/');
-                          }}
-                          className="w-full btn-primary rounded-xl text-xs font-bold h-10 shadow-md"
-                        >
-                          Use Demo Account
-                        </Button>
-                        <Button asChild variant="outline" className="w-full rounded-xl text-xs font-semibold h-9" onClick={() => setMobileMenuOpen(false)}>
+                        <Button asChild className="w-full btn-primary rounded-xl text-xs font-bold h-10 shadow-md" onClick={() => setMobileMenuOpen(false)}>
                           <Link to="/auth">Sign In / Create Account</Link>
                         </Button>
                       </div>

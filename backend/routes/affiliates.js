@@ -2,8 +2,40 @@ import express from 'express';
 import pool from '../config/database.js';
 import { authenticate } from '../middleware/auth.js';
 import { generateUUID } from '../utils/uuid.js';
+import { sendAffiliateWaitlistEmail } from '../utils/mailer.js';
 
 const router = express.Router();
+
+// Join affiliate waitlist
+router.post('/waitlist', async (req, res) => {
+  try {
+    const { full_name, email, phone_number, social_handle } = req.body;
+
+    if (!full_name || !email || !phone_number) {
+      return res.status(400).json({ error: 'Full name, email, and phone number are required.' });
+    }
+
+    // Insert or update waitlist entry
+    await pool.execute(
+      `INSERT INTO affiliate_waitlist (id, full_name, email, phone_number, social_handle, created_at)
+       VALUES (UUID(), ?, ?, ?, ?, NOW())`,
+      [full_name, email, phone_number, social_handle || null]
+    );
+
+    // Trigger confirmation email
+    sendAffiliateWaitlistEmail({ full_name, email }).catch(err => {
+      console.warn('Waitlist confirmation email warning:', err.message);
+    });
+
+    res.status(201).json({
+      message: 'Successfully joined the Melodiva Affiliate Waitlist!',
+      whatsapp_community_link: 'https://chat.whatsapp.com/GzF4MelodivaCommunity'
+    });
+  } catch (error) {
+    console.error('Affiliate waitlist error:', error);
+    res.status(500).json({ error: 'Failed to join waitlist. Please try again.' });
+  }
+});
 
 // Check if user is affiliate
 router.get('/check', authenticate, async (req, res) => {
