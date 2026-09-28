@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, TrendingUp, ArrowLeft, Loader2, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { DollarSign, Users, TrendingUp, ArrowLeft, Loader2, CheckCircle2, Clock, ShieldCheck, FileText } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -69,21 +69,18 @@ const Affiliate = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary font-bold"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Back to Shop
         </Button>
       </div>
 
       <div className="max-w-4xl mx-auto space-y-10">
         {/* Hero Header */}
-        <div className="text-center space-y-4">
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-bold px-3 py-1 text-xs uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 mr-1 inline" /> Affiliate Program
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+        <div className="text-center space-y-3">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
             Earn With <span className="gradient-text">Melodiva Skincare</span>
           </h1>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -148,6 +145,69 @@ const Affiliate = () => {
                 <span>Flexible withdrawals directly to any Nigerian bank account once you reach ₦5,000.</span>
               </li>
             </ul>
+          </div>
+        </Card>
+
+        {/* Affiliate Program Rules Section */}
+        <Card className="p-8 border-border/80 bg-card shadow-sm rounded-2xl space-y-6">
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <h2 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
+              <ShieldCheck className="h-6 w-6 text-primary" /> Affiliate Program Rules & Terms
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/affiliate-rules")}
+              className="rounded-xl text-xs font-bold gap-1.5"
+            >
+              <FileText className="w-3.5 h-3.5 text-primary" /> Full Rules Page
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-muted-foreground">
+            <div className="space-y-2.5 p-4 rounded-xl bg-secondary/40 border border-border/60">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> Commission Structure
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>Earn up to 10% commission on completed customer purchases.</li>
+                <li>Calculated on total product order value (excluding delivery fees).</li>
+                <li>Commissions credited upon successful order delivery.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2.5 p-4 rounded-xl bg-secondary/40 border border-border/60">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> Payout Terms
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>Minimum bank withdrawal threshold is ₦5,000.</li>
+                <li>Bank transfers processed within 7 business days to Nigerian banks.</li>
+                <li>Instant balance conversion into discount coupons starting from ₦100.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2.5 p-4 rounded-xl bg-secondary/40 border border-border/60">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> Code & Usage Policy
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>Unique case-sensitive referral code issued upon approval.</li>
+                <li>Self-referrals on own purchases are strictly prohibited.</li>
+                <li>Referral codes give buyers 5% off at checkout.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2.5 p-4 rounded-xl bg-secondary/40 border border-border/60">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> Prohibited Practices
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>No unsolicited spamming or misleading advertising.</li>
+                <li>No fake order generation or cookie manipulation.</li>
+                <li>Violation results in forfeiture of unwithdrawn balance.</li>
+              </ul>
+            </div>
           </div>
         </Card>
 

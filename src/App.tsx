@@ -62,6 +62,7 @@ const MainLayout = () => {
 
   const isChecklistPage = location.pathname === "/checklist";
   const isProductDetailPage = location.pathname.startsWith("/product/");
+  const isAffiliatePage = location.pathname === "/affiliate";
 
   const hideFooterRoutes = [
     "/checklist",
@@ -76,7 +77,7 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isChecklistPage && !isProductDetailPage && <Header />}
+      {!isChecklistPage && !isProductDetailPage && !isAffiliatePage && <Header />}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />

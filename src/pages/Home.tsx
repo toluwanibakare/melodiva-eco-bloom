@@ -88,7 +88,7 @@ const Home = () => {
               </Button>
             ) : (
               <Button asChild size="lg" variant="outline" className="text-base px-8 py-6 rounded-2xl bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-300 font-bold">
-                <Link to="/affiliate">Join Affiliate</Link>
+                <Link to="/affiliate">Affiliate Program</Link>
               </Button>
             )}
           </div>
@@ -504,53 +504,46 @@ const Home = () => {
       {/* FAQ Section Integrated on Home Page */}
       <FAQSection className="bg-secondary/10 rounded-3xl my-10 border border-border/40" />
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary via-emerald-800 to-green-900 text-white rounded-3xl mx-4 md:mx-10 my-16 shadow-2xl relative overflow-hidden border border-white/10">
+      {/* CTA Section - Affiliate Waitlist Launch */}
+      <section className="py-20 bg-gradient-to-r from-emerald-950 via-emerald-900 to-green-950 text-white rounded-3xl mx-4 md:mx-10 my-16 shadow-2xl relative overflow-hidden border border-emerald-500/30">
         {/* Ambient Glowing Background Orbs */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -left-20 -bottom-20 w-96 h-96 rounded-full bg-green-400/20 blur-3xl pointer-events-none" />
 
-        <div className="container mx-auto px-4 text-center relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-emerald-200">
-            <Gift className="h-3.5 w-3.5 text-emerald-300" />
-            <span>Earn With Melodiva</span>
+        <div className="container mx-auto px-4 text-center relative z-10 max-w-3xl space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-400/20 backdrop-blur-md border border-emerald-400/40 text-xs font-extrabold text-emerald-200 uppercase tracking-widest shadow-sm">
+            <Clock className="h-3.5 w-3.5 text-emerald-300 animate-spin" style={{ animationDuration: '4s' }} />
+            <span>LAUNCHING SOON • JOIN THE VIP WAITLIST</span>
           </div>
 
-          {isAffiliate ? (
-            <>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                Your Affiliate <span className="text-emerald-300">Dashboard</span>
-              </h2>
-              <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto leading-relaxed font-light">
-                Track your real-time commissions, manage your custom 5% referral discount codes, and monitor your earnings.
-              </p>
-              <div className="pt-2">
-                <Button asChild size="lg" className="bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-bold px-9 py-6 text-base shadow-xl hover:scale-105 active:scale-95 transition-all duration-300">
-                  <Link to="/affiliate-dashboard">
-                    <span>Go to Dashboard</span>
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                Join Our <span className="text-emerald-300">Affiliate Program</span>
-              </h2>
-              <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto leading-relaxed font-light">
-                Earn steady commissions on every order made with your code. Give your followers 5% off while earning extra income!
-              </p>
-              <div className="pt-2">
-                <Button asChild size="lg" className="bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-bold px-9 py-6 text-base shadow-xl hover:scale-105 active:scale-95 transition-all duration-300">
-                  <Link to="/affiliate">
-                    <span>Become an Affiliate</span>
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
-            </>
-          )}
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
+            Become a Melodiva <span className="text-emerald-300 drop-shadow-md">Brand Affiliate</span>
+          </h2>
+
+          <p className="text-sm md:text-base text-white/90 max-w-2xl mx-auto leading-relaxed font-normal">
+            Earn up to 10% commission per referral on 100% natural, unrefined skincare. Give your followers an instant 5% discount while earning extra income!
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-2.5 py-1 text-xs font-bold text-emerald-100">
+            <span className="px-3.5 py-1.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm">
+              ₦1,000 Payout per 2kg Tub
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm">
+              5% Instant Buyer Discount
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm">
+              Instant Nigerian Bank Payouts
+            </span>
+          </div>
+
+          <div className="pt-3">
+            <Button asChild size="lg" className="bg-white text-emerald-950 hover:bg-emerald-50 rounded-2xl font-extrabold px-10 py-6 text-base shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white/40">
+              <Link to="/affiliate">
+                <span>Join Affiliate Waitlist</span>
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>
