@@ -10,6 +10,7 @@ import bs_p500 from '@/assets/bs_p-500.jpg';
 import ke250 from '@/assets/ke_250.jpg';
 import ke500 from '@/assets/ke_500.jpg';
 import ke1k from '@/assets/ke_1000.jpg';
+import bs_base from '@/assets/bs_base.png';
 
 
 export const products: Product[] = [
@@ -41,6 +42,12 @@ export const products: Product[] = [
         sizes: [
           { size: '250g', price: 2000, stock: 60 },
           { size: '500g', price: 4000, stock: 40 }
+        ]
+      },
+      {
+        variant: 'base',
+        sizes: [
+          { size: '1kg', price: 7500, stock: 40 }
         ]
       }
     ]
@@ -190,6 +197,23 @@ export const products: Product[] = [
     basePrice: 8000,
     sizes: [
       { size: '1000ml', price: 8000, stock: 30 }
+    ]
+  },
+  // Black Soap - Base Variant (1kg)
+  {
+    id: 'black-soap-base-1kg',
+    name: 'Black Soap - Base (1kg)',
+    type: 'black-soap',
+    description: '100% natural, unrefined raw African black soap base (1kg tub). Rich in organic vitamins and minerals, perfect for deep cleansing and multipurpose skin care formulation.',
+    image: bs_base,
+    basePrice: 7500,
+    variants: [
+      {
+        variant: 'base',
+        sizes: [
+          { size: '1kg', price: 7500, stock: 40 }
+        ]
+      }
     ]
   }
 ];

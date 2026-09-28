@@ -96,6 +96,15 @@ const products = [
         price: 5000,
         stock: 30,
         image_url: '/assets/ke_1000.jpg'
+    },
+    // Black Soap Base
+    {
+        name: 'Black Soap - Base (1kg)',
+        type: 'black-soap',
+        description: '100% natural, unrefined raw African black soap base (1kg tub). Rich in organic vitamins and minerals, perfect for deep cleansing and multipurpose skin care formulation.',
+        price: 7500,
+        stock: 40,
+        image_url: '/assets/bs_base.png'
     }
 ];
 

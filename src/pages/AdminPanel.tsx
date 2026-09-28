@@ -85,6 +85,7 @@ import bs_p500 from "@/assets/bs_p-500.jpg";
 import ke250 from "@/assets/ke_250.jpg";
 import ke500 from "@/assets/ke_500.jpg";
 import ke1k from "@/assets/ke_1000.jpg";
+import bs_base from "@/assets/bs_base.png";
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -106,6 +107,7 @@ const getProductThumbnail = (p: ProductRow) => {
   if (url.includes('ke_250') || (name.includes('kernel') && (name.includes('250') || name.includes('250ml')))) return ke250;
   if (url.includes('ke_500') || (name.includes('kernel') && (name.includes('500') || name.includes('500ml')))) return ke500;
   if (url.includes('ke_1000') || (name.includes('kernel') && (name.includes('1000') || name.includes('1l') || name.includes('1000ml')))) return ke1k;
+  if (url.includes('bs_base') || name.includes('base') || (name.includes('soap') && (name.includes('1kg') || name.includes('1000g')))) return bs_base;
   if (type.includes('kernel') || name.includes('kernel') || url.includes('kernel')) return kernelOilImg;
   return blackSoapImg;
 };
