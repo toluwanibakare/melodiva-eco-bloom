@@ -296,7 +296,7 @@ const Header = () => {
                     <Menu className="h-5 w-5 text-foreground" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[310px] rounded-l-3xl p-6 bg-card/95 backdrop-blur-2xl border-border flex flex-col justify-between">
+                <SheetContent side="right" className="w-[310px] sm:w-[340px] rounded-l-3xl p-5 sm:p-6 pb-10 sm:pb-12 bg-card/95 backdrop-blur-2xl border-border flex flex-col justify-between overflow-y-auto max-h-screen">
                   <div>
                     <SheetHeader className="text-left pb-4 border-b border-border">
                       <SheetTitle className="flex items-center gap-2">
