@@ -80,11 +80,11 @@ export const DemoBanner: React.FC = () => {
 
   if (minimized) {
     return (
-      <div className="fixed bottom-3 left-3 sm:left-4 z-40">
+      <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-[60]">
         <Button
           onClick={() => setMinimized(false)}
           size="sm"
-          className="btn-primary text-[11px] font-bold rounded-full shadow-lg px-3 py-1.5 h-8 flex items-center gap-1.5 border border-primary/30"
+          className="btn-primary text-[11px] font-bold rounded-full shadow-xl px-3.5 py-1.5 h-9 flex items-center gap-1.5 border border-primary/30"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>Demo Controls</span>
@@ -94,7 +94,7 @@ export const DemoBanner: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-3 left-3 right-3 sm:right-auto sm:left-4 sm:max-w-sm z-50 bg-card border-2 border-primary/40 text-card-foreground p-3.5 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in">
+    <div className="fixed bottom-3 left-3 right-3 sm:right-auto sm:max-w-sm sm:bottom-4 sm:left-4 z-[60] bg-card border-2 border-primary/40 text-card-foreground p-3.5 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in">
       <div className="flex items-center justify-between pb-2 border-b border-border">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-black text-[9px] uppercase px-2 py-0.5">
