@@ -83,7 +83,10 @@ router.post('/signup', async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ error: 'Failed to create user' });
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ error: 'Database service unavailable (MySQL connection refused). Please start MySQL service.' });
+    }
+    res.status(500).json({ error: error.message || 'Failed to create user' });
   }
 });
 
@@ -133,7 +136,10 @@ router.post('/signin', async (req, res) => {
     });
   } catch (error) {
     console.error('Signin error:', error);
-    res.status(500).json({ error: 'Failed to sign in' });
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ error: 'Database service unavailable (MySQL connection refused). Please start MySQL service.' });
+    }
+    res.status(500).json({ error: error.message || 'Failed to sign in' });
   }
 });
 

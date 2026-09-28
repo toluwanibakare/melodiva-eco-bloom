@@ -69,21 +69,72 @@ class ApiClient {
     security_question: string;
     security_answer: string;
   }) {
-    const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    this.setToken(response.token);
-    return response;
+    try {
+      const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      this.setToken(response.token);
+      return response;
+    } catch (err: any) {
+      console.warn('Backend signup unavailable/failed. Attempting Supabase Auth fallback...', err);
+      try {
+        const { data: supaData, error: supaError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: data.full_name,
+              phone_number: data.phone_number,
+              whatsapp_number: data.whatsapp_number || data.phone_number,
+              address: data.address,
+              state: data.state,
+              city: data.city,
+            }
+          }
+        });
+        if (supaError) throw supaError;
+        if (supaData?.session) {
+          this.setToken(supaData.session.access_token);
+          return {
+            token: supaData.session.access_token,
+            user: { id: supaData.user?.id || 'supa-id', email: data.email }
+          };
+        }
+      } catch (supaErr: any) {
+        if (supaErr?.message) throw supaErr;
+      }
+      throw new Error(err?.message || 'Database connection error. Please verify MySQL service is running or check network connection.');
+    }
   }
 
   async signIn(email: string, password: string) {
-    const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signin', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    this.setToken(response.token);
-    return response;
+    try {
+      const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      this.setToken(response.token);
+      return response;
+    } catch (err: any) {
+      console.warn('Backend signin unavailable/failed. Attempting Supabase Auth fallback...', err);
+      try {
+        const { data: supaData, error: supaError } = await supabase.auth.signInWithPassword({ email, password });
+        if (supaError) throw supaError;
+        if (supaData?.session) {
+          this.setToken(supaData.session.access_token);
+          return {
+            token: supaData.session.access_token,
+            user: { id: supaData.user.id, email: supaData.user.email || email }
+          };
+        }
+      } catch (supaErr: any) {
+        if (err?.status === 401 || supaErr?.message?.includes('Invalid')) {
+          throw new Error('Invalid email or password');
+        }
+      }
+      throw new Error(err?.message || 'Database connection error (ECONNREFUSED). Please ensure MySQL service is running or check network connection.');
+    }
   }
 
   async signOut() {
@@ -92,6 +143,7 @@ class ApiClient {
     } catch (error) {
       // Ignore
     } finally {
+      try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
       this.setToken(null);
     }
   }
@@ -105,8 +157,18 @@ class ApiClient {
       const response = await this.request<{ user: { id: string; email: string; created_at: string } }>('/auth/session');
       return { data: { session: { user: response.user } } };
     } catch (error: any) {
-      if (this.token && (error?.status === 401 || error?.message?.includes('401'))) {
-        this.setToken(null);
+      if (this.token) {
+        try {
+          const { data: supaSession } = await supabase.auth.getSession();
+          if (supaSession?.session?.user) {
+            return { data: { session: { user: supaSession.session.user } } };
+          }
+        } catch (e) {
+          // ignore
+        }
+        if (error?.status === 401 || error?.message?.includes('401')) {
+          this.setToken(null);
+        }
       }
       return { data: { session: null } };
     }
