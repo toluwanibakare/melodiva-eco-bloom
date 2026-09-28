@@ -213,24 +213,21 @@ export default function Auth() {
           <h1 className="text-3xl font-bold text-foreground">Welcome to Melodiva</h1>
           <p className="text-muted-foreground mt-1 text-sm">Natural beauty, naturally yours</p>
 
-          <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
-            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-              ⚡ Testing the app on Vercel or live preview? No registration required!
-            </p>
+          <div className="mt-4">
             <Button
               type="button"
               onClick={() => {
                 api.enableDemoMode();
                 auth.notify('SIGNED_IN', { user: { email: 'demo@melodivaskincare.com' } });
                 toast({
-                  title: 'Logged in as Demo User ⚡',
+                  title: 'Logged in as Demo User',
                   description: 'Welcome to Melodiva Demo Account!',
                 });
                 navigate('/');
               }}
-              className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-xl py-5 shadow-md"
+              className="w-full btn-primary font-bold text-sm rounded-xl py-5 shadow-sm"
             >
-              Enter as Demo User (Instant Access)
+              Use Demo Account
             </Button>
           </div>
         </div>
