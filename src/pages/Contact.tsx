@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Instagram } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { api } from "@/lib/api";
 import FAQSection from "@/components/FAQSection";
@@ -112,6 +112,11 @@ export default function ContactPage() {
               <li className="flex items-start gap-3">
                 <FaWhatsapp className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <span><strong>WhatsApp:</strong> +234 807 872 5283</span>
+              </li>
+
+              <li className="flex items-start gap-3">
+                <Instagram className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <span><strong>Instagram:</strong> <a href="https://www.instagram.com/melodiva_products" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary font-bold">@melodiva_products</a></span>
               </li>
             </ul>
           </Card>

@@ -38,10 +38,10 @@ const Footer = () => {
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/melodiva_products"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram"
+                aria-label="Instagram (@melodiva_products)"
                 className="p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-primary hover:border-primary/50 hover:bg-primary/10 hover:scale-110 transition-all duration-300"
               >
                 <Instagram className="h-4 w-4" />
