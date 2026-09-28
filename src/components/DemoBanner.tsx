@@ -11,7 +11,14 @@ export const DemoBanner: React.FC = () => {
   const { toast } = useToast();
   const { addItem } = useCartStore();
   const [isDemo, setIsDemo] = useState(demoStore.isDemoActive());
-  const [minimized, setMinimized] = useState(false);
+
+  // Default to minimized on mobile screens (< 640px)
+  const [minimized, setMinimized] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 640;
+    }
+    return false;
+  });
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -54,7 +61,7 @@ export const DemoBanner: React.FC = () => {
       type: 'kernel-oil',
     });
     toast({
-      title: 'Demo Items Added to Cart',
+      title: 'Demo Items Added',
       description: '500g Exquisite Black Soap & 500ml Kernel Oil added to your cart!',
     });
   };
@@ -73,12 +80,13 @@ export const DemoBanner: React.FC = () => {
 
   if (minimized) {
     return (
-      <div className="fixed bottom-4 left-4 z-50">
+      <div className="fixed bottom-3 left-3 sm:left-4 z-40">
         <Button
           onClick={() => setMinimized(false)}
-          className="btn-primary text-xs font-bold rounded-full shadow-xl px-4 py-2 flex items-center gap-2 border border-primary/30"
+          size="sm"
+          className="btn-primary text-[11px] font-bold rounded-full shadow-lg px-3 py-1.5 h-8 flex items-center gap-1.5 border border-primary/30"
         >
-          <CheckCircle2 className="w-4 h-4" />
+          <CheckCircle2 className="w-3.5 h-3.5" />
           <span>Demo Controls</span>
         </Button>
       </div>
@@ -86,13 +94,13 @@ export const DemoBanner: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 max-w-sm w-full bg-card border-2 border-primary/30 text-card-foreground p-4 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in">
+    <div className="fixed bottom-3 left-3 right-3 sm:right-auto sm:left-4 sm:max-w-sm z-50 bg-card border-2 border-primary/40 text-card-foreground p-3.5 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in">
       <div className="flex items-center justify-between pb-2 border-b border-border">
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-black text-[9px] uppercase px-2 py-0.5">
             Demo Mode Active
           </Badge>
-          <span className="text-xs font-bold text-foreground">Melodiva Demo User</span>
+          <span className="text-xs font-bold text-foreground truncate max-w-[150px]">Melodiva Demo User</span>
         </div>
         <button
           onClick={() => setMinimized(true)}
@@ -103,9 +111,9 @@ export const DemoBanner: React.FC = () => {
         </button>
       </div>
 
-      <div className="py-2.5 space-y-2 text-xs text-muted-foreground">
+      <div className="py-2 space-y-2 text-xs text-muted-foreground">
         <div className="flex items-center justify-between p-2 rounded-xl bg-secondary/60 border border-border">
-          <span className="flex items-center gap-1.5 font-mono text-primary font-bold">
+          <span className="flex items-center gap-1.5 font-mono text-primary font-bold text-xs">
             <Tag className="w-3.5 h-3.5" /> MELODIVA10
           </span>
           <button
@@ -117,11 +125,11 @@ export const DemoBanner: React.FC = () => {
         </div>
 
         <p className="text-[11px] leading-tight">
-          Checkout, order history, tracking & affiliate dashboard are pre-filled for testing.
+          Checkout, order history, tracking & affiliate dashboard are pre-filled.
         </p>
       </div>
 
-      <div className="pt-2 flex items-center gap-2">
+      <div className="pt-1.5 flex items-center gap-2">
         <Button
           onClick={handleAddDemoItems}
           size="sm"
