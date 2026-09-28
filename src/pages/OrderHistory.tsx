@@ -4,14 +4,17 @@ import { api, auth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Package, Eye } from 'lucide-react';
+import { Loader2, Package, Eye, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ReportIssueModal } from '@/components/ReportIssueModal';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [selectedReportOrder, setSelectedReportOrder] = useState<any>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -22,6 +25,12 @@ const OrderHistory = () => {
       }
 
       fetchOrders();
+      try {
+        const profile = await api.getProfile();
+        setUserProfile(profile);
+      } catch (e) {
+        // Ignore profile fetch error
+      }
     };
 
     checkAuth();
@@ -66,17 +75,13 @@ const OrderHistory = () => {
 
   const getItemsCount = (items: any) => {
     try {
-      // Check if items is already an array (from our checkout) or needs parsing
       if (Array.isArray(items)) {
         return items.length;
       }
-      
-      // Try to parse as JSON if it's a string
       if (typeof items === 'string') {
         const parsedItems = JSON.parse(items);
         return Array.isArray(parsedItems) ? parsedItems.length : 0;
       }
-      
       return 0;
     } catch (error) {
       console.error("Error parsing items:", error);
@@ -91,8 +96,6 @@ const OrderHistory = () => {
       </div>
     );
   }
-
-  console.log("Current orders state:", orders);
 
   if (orders.length === 0) {
     return (
@@ -138,19 +141,38 @@ const OrderHistory = () => {
                   </p>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => navigate(`/order-tracking/${order.id}`)}
                 >
-                  <Eye className="h-4 w-4 mr-2" />
+                  <Eye className="h-4 w-4 mr-1.5" />
                   Track Order
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                  onClick={() => setSelectedReportOrder(order)}
+                >
+                  <AlertTriangle className="h-4 w-4 mr-1.5" />
+                  Report Issue
                 </Button>
               </div>
             </div>
           </Card>
         ))}
       </div>
+
+      {selectedReportOrder && (
+        <ReportIssueModal
+          isOpen={!!selectedReportOrder}
+          onClose={() => setSelectedReportOrder(null)}
+          order={selectedReportOrder}
+          currentUser={userProfile}
+        />
+      )}
     </div>
   );
 };

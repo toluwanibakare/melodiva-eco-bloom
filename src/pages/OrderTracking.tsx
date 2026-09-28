@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Package, Truck, CheckCircle2, Clock, Search, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Loader2, Package, Truck, CheckCircle2, Clock, Search, ArrowLeft, MessageCircle, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ReportIssueModal } from '@/components/ReportIssueModal';
 
 const OrderTracking = () => {
   const { orderId: urlOrderId } = useParams();
@@ -16,6 +17,7 @@ const OrderTracking = () => {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [order, setOrder] = useState<any>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     if (urlOrderId) {
@@ -225,16 +227,42 @@ const OrderTracking = () => {
           <div className="space-y-8 animate-fade-in-up">
             {/* Timeline Progress */}
             <Card className="p-6 md:p-8 bg-card border-border rounded-3xl shadow-sm">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-border gap-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-border gap-3">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Order Reference</span>
                   <h2 className="text-2xl font-black text-foreground font-mono">{order.order_number || order.id}</h2>
                 </div>
-                <Badge className={`text-xs px-3 py-1 font-bold ${
-                  order.status === 'delivered' ? 'bg-emerald-500 text-white' : 'bg-primary text-primary-foreground'
-                }`}>
-                  Status: {order.status ? order.status.toUpperCase() : 'PROCESSING'}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Badge className={`text-xs px-3 py-1 font-bold ${
+                    order.status === 'delivered' ? 'bg-emerald-500 text-white' : 'bg-primary text-primary-foreground'
+                  }`}>
+                    Status: {order.status ? order.status.toUpperCase() : 'PROCESSING'}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded-xl"
+                    onClick={() => setShowReportModal(true)}
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-1.5" />
+                    Report Issue
+                  </Button>
+                </div>
+              </div>
+
+              {/* Damaged Policy Warning Banner */}
+              <div className="mb-6 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-foreground gap-2">
+                <span className="leading-relaxed">
+                  <strong>Damaged or missing item?</strong> Inspect order on receipt. Take a photo/video proof within 24h for a prompt replacement.
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-amber-600 font-bold hover:underline shrink-0 p-0 h-auto"
+                  onClick={() => setShowReportModal(true)}
+                >
+                  Claim Replacement &rarr;
+                </Button>
               </div>
 
               {/* Progress Steps */}
@@ -358,6 +386,14 @@ const OrderTracking = () => {
           </div>
         )}
       </div>
+
+      {order && (
+        <ReportIssueModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          order={order}
+        />
+      )}
     </div>
   );
 };

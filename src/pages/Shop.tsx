@@ -46,7 +46,7 @@ const Shop = () => {
             Explore Our <span className="gradient-text">Products</span>
           </h1>
           <p className="text-muted-foreground text-sm max-w-xl mx-auto leading-relaxed">
-            Discover cold-pressed palm kernel oils and handcrafted African black soap formulations for healthy, radiant skin.
+            Discover 100% pure natural palm kernel oils and handcrafted African black soap formulations for healthy, radiant skin.
           </p>
         </div>
       </div>

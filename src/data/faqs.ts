@@ -39,7 +39,13 @@ export const FAQS: FAQItem[] = [
   {
     id: "faq-6",
     question: "What should I do if my package arrives damaged?",
-    answer: "Please inspect your order upon receipt. If an item arrives damaged, take a photo/video immediately and contact our WhatsApp support (+234 807 872 5283) within 24 hours for a prompt replacement.",
+    answer: "Please inspect your order upon receipt. If an item arrives damaged, take a photo/video immediately and contact our WhatsApp support (+234 807 872 5283) within 24 hours or report an issue on your order for a prompt replacement.",
     category: "Orders & Refunds"
+  },
+  {
+    id: "faq-7",
+    question: "Is Melodiva Kernel Oil cold-pressed?",
+    answer: "Our Kernel Oil is 100% pure natural palm kernel oil extracted through traditional artisanal processes (it is not cold-pressed). It preserves rich essential fatty acids and nutrients for deep skin and hair moisture.",
+    category: "Products"
   }
 ];

@@ -266,4 +266,82 @@ router.get('/:orderId/history', authenticate, async (req, res) => {
   }
 });
 
+// Submit Order Issue / Claim Replacement
+router.post('/issues', async (req, res) => {
+  try {
+    const {
+      order_id,
+      order_number,
+      customer_name,
+      customer_email,
+      customer_phone,
+      issue_type,
+      description,
+      media_urls,
+      user_id
+    } = req.body;
+
+    if (!order_number || !customer_name || !customer_email || !description) {
+      return res.status(400).json({ error: 'Order number, customer name, email, and description are required' });
+    }
+
+    const issueId = generateUUID();
+
+    await pool.execute(
+      `INSERT INTO order_issues (
+        id, order_id, order_number, user_id, customer_name, customer_email,
+        customer_phone, issue_type, description, media_urls, status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())`,
+      [
+        issueId,
+        order_id || order_number,
+        order_number,
+        user_id || null,
+        customer_name,
+        customer_email,
+        customer_phone || null,
+        issue_type || 'damaged_item',
+        description,
+        JSON.stringify(media_urls || [])
+      ]
+    );
+
+    res.status(201).json({
+      message: 'Issue report submitted successfully',
+      issue_id: issueId
+    });
+  } catch (error) {
+    console.error('Submit order issue error:', error);
+    res.status(500).json({ error: 'Failed to submit issue report' });
+  }
+});
+
+// Get order issues for an order
+router.get('/:orderId/issues', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const cleanId = orderId.trim();
+
+    const [issues] = await pool.execute(
+      `SELECT id, order_id, order_number, user_id, customer_name, customer_email,
+              customer_phone, issue_type, description, media_urls, status, admin_reply,
+              created_at, updated_at
+       FROM order_issues
+       WHERE order_id = ? OR order_number = ?
+       ORDER BY created_at DESC`,
+      [cleanId, cleanId]
+    );
+
+    const parsedIssues = issues.map(iss => ({
+      ...iss,
+      media_urls: typeof iss.media_urls === 'string' ? JSON.parse(iss.media_urls) : (iss.media_urls || [])
+    }));
+
+    res.json(parsedIssues);
+  } catch (error) {
+    console.error('Get order issues error:', error);
+    res.status(500).json({ error: 'Failed to get order issues' });
+  }
+});
+
 export default router;

@@ -346,4 +346,64 @@ router.post('/contact-messages/:id/reply', async (req, res) => {
   }
 });
 
+// Order Issues Management
+router.get('/order-issues', async (req, res) => {
+  try {
+    const [issues] = await pool.execute(
+      `SELECT id, order_id, order_number, user_id, customer_name, customer_email,
+              customer_phone, issue_type, description, media_urls, status, admin_reply,
+              created_at, updated_at
+       FROM order_issues 
+       ORDER BY created_at DESC`
+    );
+
+    const parsedIssues = issues.map(iss => ({
+      ...iss,
+      media_urls: typeof iss.media_urls === 'string' ? JSON.parse(iss.media_urls) : (iss.media_urls || [])
+    }));
+
+    res.json(parsedIssues);
+  } catch (error) {
+    console.error('Get admin order issues error:', error);
+    res.status(500).json({ error: 'Failed to get order issues' });
+  }
+});
+
+router.put('/order-issues/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, admin_reply } = req.body;
+
+    const updates = [];
+    const values = [];
+
+    if (status) {
+      updates.push('status = ?');
+      values.push(status);
+    }
+
+    if (admin_reply !== undefined) {
+      updates.push('admin_reply = ?');
+      values.push(admin_reply);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    updates.push('updated_at = NOW()');
+    values.push(id);
+
+    await pool.execute(
+      `UPDATE order_issues SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    res.json({ message: 'Order issue updated successfully' });
+  } catch (error) {
+    console.error('Update order issue error:', error);
+    res.status(500).json({ error: 'Failed to update order issue' });
+  }
+});
+
 export default router;

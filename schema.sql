@@ -32,8 +32,13 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   id CHAR(36) PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
+  phone TEXT NULL,
+  subject TEXT NULL,
   message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  reply TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -227,6 +232,49 @@ FOR EACH ROW
 BEGIN
   IF NEW.id IS NULL OR NEW.id = '' THEN SET NEW.id = UUID(); END IF;
 END$$
+
+CREATE TRIGGER trg_order_issues_before_insert
+BEFORE INSERT ON order_issues
+FOR EACH ROW
+BEGIN
+  IF NEW.id IS NULL OR NEW.id = '' THEN SET NEW.id = UUID(); END IF;
+END$$
+
+-- ============================================================================
+-- ORDER ISSUES TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS order_issues (
+  id CHAR(36) PRIMARY KEY,
+  order_id CHAR(36) NOT NULL,
+  order_number VARCHAR(100) NOT NULL,
+  user_id CHAR(36) NULL,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT NULL,
+  issue_type VARCHAR(50) NOT NULL DEFAULT 'damaged_item',
+  description TEXT NOT NULL,
+  media_urls JSON NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  admin_reply TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_order_issues_order_number (order_number),
+  INDEX idx_order_issues_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- DELIVERY PRICING TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS delivery_pricing (
+  id CHAR(36) PRIMARY KEY,
+  location_type ENUM('state', 'city') NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  parent_state VARCHAR(255) NULL,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_location (location_type, name, parent_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
 -- COUPONS TABLE

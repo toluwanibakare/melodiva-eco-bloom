@@ -72,7 +72,7 @@ const Home = () => {
           </h1>
 
           <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto text-white/90 leading-relaxed font-medium animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-            Discover gentle African black soaps and pure cold-pressed kernel oil, lovingly created to restore your skin’s natural, healthy glow.
+            Discover gentle African black soaps and 100% pure natural kernel oil, lovingly created to restore your skin’s natural, healthy glow.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-3 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
@@ -151,7 +151,7 @@ const Home = () => {
               <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                    Cold-Pressed & Handcrafted
+                    100% Pure & Handcrafted
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mt-2">
                     Wild-harvested palm kernels, unrefined cocoa pod ash, and organic herbal infusions—zero artificial chemicals or synthetic sulfates.
@@ -265,7 +265,7 @@ const Home = () => {
               </div>
               <h3 className="text-lg font-bold mb-2">Artisanal Quality</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Traditional cold-pressed formulation methods for maximum skin nourishment.
+                Traditional artisanal formulation methods for maximum skin nourishment.
               </p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 transition-all">
@@ -293,7 +293,7 @@ const Home = () => {
               Made for Your <span className="gradient-text">Daily Ritual</span>
             </h2>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
-              Explore our gentle handcrafted black soaps and cold-pressed pure kernel oils created to cherish your skin.
+              Explore our gentle handcrafted black soaps and 100% pure natural kernel oils created to cherish your skin.
             </p>
             {/* Scroll Navigation Arrow Buttons */}
             <div className="flex items-center justify-center gap-3 pt-2">

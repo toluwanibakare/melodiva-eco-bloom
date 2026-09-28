@@ -57,13 +57,13 @@ const ReturnsPolicy = () => {
             <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
               <Truck className="h-5 w-5 text-primary" /> 2. Damaged or Incorrect Items Upon Delivery
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              We package every Melodiva product with care. However, if your package arrives damaged or you received an incorrect item:
+            <p className="text-sm text-foreground font-semibold leading-relaxed bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+              Please inspect your order upon receipt. If an item arrives damaged, take a photo/video immediately and contact our WhatsApp support (+234 807 872 5283) within 24 hours for a prompt replacement.
             </p>
-            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1.5 pl-2">
+            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1.5 pl-2 pt-2">
               <li>Inspect your order immediately upon receipt in the presence of the dispatch rider or at the waybill hub.</li>
               <li>Take clear photos and unboxing videos showing the unopened condition of the outer packaging and damaged product.</li>
-              <li>Notify our team within <strong>24 hours</strong> of delivery via WhatsApp (+234 807 872 5283) or email (<a href="mailto:melodivaproducts@gmail.com" className="text-primary hover:underline">melodivaproducts@gmail.com</a>).</li>
+              <li>Report an issue on your order page or notify our WhatsApp support (+234 807 872 5283) within 24 hours of delivery.</li>
               <li>Verified damaged or wrongly sent items will be replaced promptly at no additional cost.</li>
             </ul>
           </CardContent>

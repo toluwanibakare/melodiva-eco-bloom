@@ -407,6 +407,101 @@ class ApiClient {
       return { success: true, data };
     }
   }
+
+  // Order Issues / Claims Methods
+  async submitOrderIssue(data: {
+    order_id: string;
+    order_number: string;
+    customer_name: string;
+    customer_email: string;
+    customer_phone?: string;
+    issue_type: string;
+    description: string;
+    media_urls?: string[];
+    user_id?: string;
+  }) {
+    try {
+      return await this.request('/orders/issues', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.warn('API /orders/issues unavailable, writing to Supabase...', e);
+      const { data: result, error } = await supabase
+        .from('order_issues')
+        .insert([{
+          order_id: data.order_id,
+          order_number: data.order_number,
+          user_id: data.user_id || null,
+          customer_name: data.customer_name,
+          customer_email: data.customer_email,
+          customer_phone: data.customer_phone || null,
+          issue_type: data.issue_type || 'damaged_item',
+          description: data.description,
+          media_urls: data.media_urls || [],
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
+      if (error) throw error;
+      return result;
+    }
+  }
+
+  async getOrderIssues(orderId: string) {
+    try {
+      return await this.request<any[]>(`/orders/${encodeURIComponent(orderId)}/issues`);
+    } catch (e) {
+      console.warn('API getOrderIssues unavailable, querying Supabase...', e);
+      const { data, error } = await supabase
+        .from('order_issues')
+        .select('*')
+        .or(`order_id.eq.${orderId},order_number.eq.${orderId}`)
+        .order('created_at', { ascending: false });
+      if (error) return [];
+      return data || [];
+    }
+  }
+
+  async getAdminOrderIssues() {
+    try {
+      const res = await this.request<any[]>('/admin/order-issues');
+      if (Array.isArray(res)) return res;
+    } catch (e) {
+      console.warn('API /admin/order-issues failed, querying Supabase...', e);
+    }
+    try {
+      const { data, error } = await supabase
+        .from('order_issues')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching order issues from Supabase:', err);
+      return [];
+    }
+  }
+
+  async updateOrderIssue(id: string, data: { status?: string; admin_reply?: string }) {
+    try {
+      return await this.request(`/admin/order-issues/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.warn('API updateOrderIssue failed, updating Supabase directly...', e);
+      const updateData: any = { updated_at: new Date().toISOString() };
+      if (data.status) updateData.status = data.status;
+      if (data.admin_reply !== undefined) updateData.admin_reply = data.admin_reply;
+
+      const { data: res, error } = await supabase
+        .from('order_issues')
+        .update(updateData)
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, data: res };
+    }
+  }
 }
 
 export const api = new ApiClient();

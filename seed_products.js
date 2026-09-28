@@ -16,7 +16,7 @@ const products = [
     {
         name: 'Pure Kernel Oil',
         type: 'kernel-oil',
-        description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+        description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
         price: 1500,
         stock: 100,
         image_url: '/assets/kernel-oil.jpg'
@@ -76,7 +76,7 @@ const products = [
     {
         name: 'Pure Kernel Oil (250ml)',
         type: 'kernel-oil',
-        description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+        description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
         price: 1500,
         stock: 70,
         image_url: '/assets/ke_250.jpg'
@@ -84,7 +84,7 @@ const products = [
     {
         name: 'Pure Kernel Oil (500ml)',
         type: 'kernel-oil',
-        description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+        description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
         price: 2800,
         stock: 50,
         image_url: '/assets/ke_500.jpg'
@@ -92,7 +92,7 @@ const products = [
     {
         name: 'Pure Kernel Oil (1000ml)',
         type: 'kernel-oil',
-        description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+        description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
         price: 5000,
         stock: 30,
         image_url: '/assets/ke_1000.jpg'

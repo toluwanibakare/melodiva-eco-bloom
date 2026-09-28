@@ -50,7 +50,7 @@ export const products: Product[] = [
     id: 'kernel-oil',
     name: 'Pure Kernel Oil',
     type: 'kernel-oil',
-    description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+    description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
     image: kernelOilImg,
     basePrice: 2500,
     sizes: [
@@ -163,7 +163,7 @@ export const products: Product[] = [
     id: 'kernel-oil-250ml',
     name: 'Pure Kernel Oil (250ml)',
     type: 'kernel-oil',
-    description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+    description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
     image: ke250,
     basePrice: 2500,
     sizes: [
@@ -174,7 +174,7 @@ export const products: Product[] = [
     id: 'kernel-oil-500ml',
     name: 'Pure Kernel Oil (500ml)',
     type: 'kernel-oil',
-    description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+    description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
     image: ke500,
     basePrice: 4500,
     sizes: [
@@ -185,7 +185,7 @@ export const products: Product[] = [
     id: 'kernel-oil-1000ml',
     name: 'Pure Kernel Oil (1000ml)',
     type: 'kernel-oil',
-    description: 'Cold-pressed pure kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
+    description: '100% pure natural kernel oil extracted from premium palm kernels. Rich in essential fatty acids, perfect for hair and skin moisturizing.',
     image: ke1k,
     basePrice: 8000,
     sizes: [

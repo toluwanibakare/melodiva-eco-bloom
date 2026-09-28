@@ -54,7 +54,10 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
-  Sparkles
+  Sparkles,
+  Eye,
+  Video,
+  Image as ImageIcon
 } from "lucide-react";
 import {
   BarChart,
@@ -219,6 +222,14 @@ export default function AdminPanel() {
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [replyText, setReplyText] = useState("");
 
+  // Order Issues / Damaged Item Claims State
+  const [orderIssues, setOrderIssues] = useState<any[]>([]);
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [issueReplyText, setIssueReplyText] = useState("");
+  const [issueStatusText, setIssueStatusText] = useState("pending");
+  const [viewingMediaUrl, setViewingMediaUrl] = useState<string | null>(null);
+
   // Settings State
   const [announcementText, setAnnouncementText] = useState(
     "100% Organic & Eco-Friendly Skincare | Fast Nigeria-Wide Shipping"
@@ -287,7 +298,7 @@ export default function AdminPanel() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData, messagesData] =
+      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData, messagesData, issuesData] =
         await Promise.all([
           api.getAdminOrders(),
           api.getAdminProfiles(),
@@ -295,7 +306,8 @@ export default function AdminPanel() {
           api.getAdminProducts().catch(() => []),
           api.getAdminAffiliates().catch(() => []),
           api.getAdminWithdrawals().catch(() => []),
-          api.getAdminContactMessages().catch(() => [])
+          api.getAdminContactMessages().catch(() => []),
+          api.getAdminOrderIssues().catch(() => [])
         ]);
 
       setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -303,6 +315,7 @@ export default function AdminPanel() {
       setAffiliates(Array.isArray(affiliatesData) ? affiliatesData : []);
       setWithdrawals(Array.isArray(withdrawalsData) ? withdrawalsData : []);
       setContactMessages(Array.isArray(messagesData) ? messagesData : []);
+      setOrderIssues(Array.isArray(issuesData) ? issuesData : []);
 
       if (Array.isArray(productsData)) {
         setProductError(null);
@@ -553,6 +566,12 @@ export default function AdminPanel() {
     return contactMessages.filter((m) => m.status === 'pending' || !m.status).length;
   }, [contactMessages]);
 
+  const pendingIssuesCount = useMemo(() => {
+    return orderIssues.filter((i) => i.status === 'pending' || !i.status).length;
+  }, [orderIssues]);
+
+  const totalSupportBadge = pendingMessagesCount + pendingIssuesCount;
+
   const navItems = [
     { id: "overview", label: "Dashboard", icon: LayoutDashboard, badge: null },
     { id: "orders", label: "Orders & Delivery", icon: ShoppingCart, badge: pendingOrdersCount > 0 ? pendingOrdersCount : null },
@@ -560,7 +579,7 @@ export default function AdminPanel() {
     { id: "users", label: "Customers", icon: Users, badge: null },
     { id: "affiliates", label: "Affiliates & Payouts", icon: Handshake, badge: null },
     { id: "delivery", label: "Shipping Rates", icon: Truck, badge: null },
-    { id: "inquiries", label: "Messages & Support", icon: MessageSquare, badge: pendingMessagesCount > 0 ? pendingMessagesCount : null },
+    { id: "inquiries", label: "Messages & Support", icon: MessageSquare, badge: totalSupportBadge > 0 ? totalSupportBadge : null },
     { id: "settings", label: "Store Settings", icon: Settings, badge: null },
   ];
 
@@ -1660,6 +1679,231 @@ export default function AdminPanel() {
                       <Check className="w-4 h-4" /> Send Reply
                     </Button>
                   </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Reported Order Issues & Damaged Claims Table */}
+              <Card className="border-border shadow-sm overflow-hidden mt-6">
+                <CardHeader className="bg-amber-500/10 pb-3 flex flex-row items-center justify-between border-b border-amber-500/20">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    <span>Reported Order Issues & Replacement Claims</span>
+                  </CardTitle>
+                  <Badge variant="outline" className="text-[10px] font-bold border-amber-500/30 text-amber-600">
+                    {orderIssues.filter(i => i.status === 'pending' || !i.status).length} Pending Claims
+                  </Badge>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-bold text-xs">Order #</TableHead>
+                        <TableHead className="font-bold text-xs">Customer</TableHead>
+                        <TableHead className="font-bold text-xs">Issue Type & Description</TableHead>
+                        <TableHead className="font-bold text-xs">Proof Media</TableHead>
+                        <TableHead className="font-bold text-xs">Status</TableHead>
+                        <TableHead className="font-bold text-xs text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orderIssues.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-12 text-xs text-muted-foreground font-medium">
+                            No reported order issues or damaged claims yet.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        orderIssues.map((issue) => {
+                          const mediaList = Array.isArray(issue.media_urls)
+                            ? issue.media_urls
+                            : (typeof issue.media_urls === 'string' ? JSON.parse(issue.media_urls || '[]') : []);
+
+                          return (
+                            <TableRow key={issue.id} className="hover:bg-secondary/30 transition-colors">
+                              <TableCell className="text-xs font-mono font-bold text-foreground">
+                                {issue.order_number}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <div className="flex flex-col">
+                                  <span className="font-extrabold text-foreground">{issue.customer_name}</span>
+                                  <span className="text-[11px] text-muted-foreground">{issue.customer_email}</span>
+                                  {issue.customer_phone && <span className="text-[10px] text-muted-foreground">{issue.customer_phone}</span>}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs max-w-xs">
+                                <div className="flex flex-col space-y-1">
+                                  <Badge variant="outline" className="w-fit text-[10px] uppercase font-bold bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                    {issue.issue_type ? issue.issue_type.replace('_', ' ') : 'Damaged Item'}
+                                  </Badge>
+                                  <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{issue.description}</p>
+                                  {issue.admin_reply && (
+                                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium mt-1">
+                                      <strong>Admin Response:</strong> {issue.admin_reply}
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {mediaList.length > 0 ? (
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    {mediaList.map((url: string, idx: number) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => setViewingMediaUrl(url)}
+                                        className="w-9 h-9 rounded-lg border border-border overflow-hidden bg-black/10 hover:border-primary transition-all relative group"
+                                      >
+                                        {url.startsWith('data:video') || url.endsWith('.mp4') ? (
+                                          <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-primary">
+                                            <Video className="w-4 h-4" />
+                                          </div>
+                                        ) : (
+                                          <img src={url} alt={`Proof ${idx}`} className="w-full h-full object-cover" />
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-muted-foreground italic">No media attached</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <Badge
+                                  className={`text-[10px] font-bold capitalize ${
+                                    issue.status === 'resolved' || issue.status === 'replacement_sent'
+                                      ? 'bg-emerald-500 text-white'
+                                      : issue.status === 'under_review'
+                                      ? 'bg-blue-500 text-white'
+                                      : issue.status === 'rejected'
+                                      ? 'bg-red-500 text-white'
+                                      : 'bg-amber-500 text-white'
+                                  }`}
+                                >
+                                  {issue.status ? issue.status.replace('_', ' ') : 'pending'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right py-3">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedIssue(issue);
+                                    setIssueReplyText(issue.admin_reply || "");
+                                    setIssueStatusText(issue.status || "pending");
+                                    setIssueDialogOpen(true);
+                                  }}
+                                  className="h-8 text-xs font-bold rounded-xl px-3 gap-1.5 border-amber-500/40 text-amber-600 hover:bg-amber-500/10"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                  <span>Update / Reply</span>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Order Issue Admin Reply & Status Dialog */}
+              <Dialog open={issueDialogOpen} onOpenChange={setIssueDialogOpen}>
+                <DialogContent className="sm:max-w-lg rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-amber-500" />
+                      <span>Review Claim for Order #{selectedIssue?.order_number}</span>
+                    </DialogTitle>
+                  </DialogHeader>
+                  {selectedIssue && (
+                    <div className="space-y-4 py-2 text-xs">
+                      <div className="p-3 rounded-xl bg-secondary/50 border border-border space-y-1">
+                        <p className="font-bold text-foreground">Customer: {selectedIssue.customer_name} ({selectedIssue.customer_email})</p>
+                        {selectedIssue.customer_phone && <p className="text-muted-foreground">Phone: {selectedIssue.customer_phone}</p>}
+                        <p className="font-semibold text-amber-600 uppercase">Issue: {selectedIssue.issue_type?.replace('_', ' ')}</p>
+                        <p className="text-muted-foreground text-[11px] italic mt-1">"{selectedIssue.description}"</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="font-bold text-xs">Update Claim Status</Label>
+                        <select
+                          value={issueStatusText}
+                          onChange={(e) => setIssueStatusText(e.target.value)}
+                          className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs"
+                        >
+                          <option value="pending">Pending Review</option>
+                          <option value="under_review">Under Review</option>
+                          <option value="replacement_sent">Replacement Sent</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="rejected">Rejected Claim</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="font-bold text-xs">Admin Response / Replacement Note</Label>
+                        <Textarea
+                          value={issueReplyText}
+                          onChange={(e) => setIssueReplyText(e.target.value)}
+                          placeholder="Type official response to customer..."
+                          className="min-h-[100px] text-xs rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button variant="outline" onClick={() => setIssueDialogOpen(false)} className="rounded-xl text-xs font-bold">
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!selectedIssue) return;
+                        try {
+                          await api.updateOrderIssue(selectedIssue.id, {
+                            status: issueStatusText,
+                            admin_reply: issueReplyText,
+                          });
+                          setOrderIssues(prev =>
+                            prev.map(i =>
+                              i.id === selectedIssue.id
+                                ? { ...i, status: issueStatusText, admin_reply: issueReplyText }
+                                : i
+                            )
+                          );
+                          toast({
+                            title: "Issue Updated",
+                            description: `Order #${selectedIssue.order_number} issue status updated to ${issueStatusText}.`,
+                          });
+                          setIssueDialogOpen(false);
+                          setSelectedIssue(null);
+                        } catch (err: any) {
+                          toast({
+                            title: "Update Failed",
+                            description: err.message || "Failed to update order issue.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="btn-primary rounded-xl text-xs font-bold gap-1.5"
+                    >
+                      <Check className="w-4 h-4" /> Save Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Full Proof Media Inspection Dialog */}
+              <Dialog open={!!viewingMediaUrl} onOpenChange={() => setViewingMediaUrl(null)}>
+                <DialogContent className="sm:max-w-2xl p-2 bg-black/90 border-zinc-800 rounded-2xl">
+                  {viewingMediaUrl && (
+                    <div className="relative flex items-center justify-center min-h-[300px]">
+                      {viewingMediaUrl.startsWith('data:video') || viewingMediaUrl.endsWith('.mp4') ? (
+                        <video src={viewingMediaUrl} controls autoPlay className="max-h-[80vh] w-full rounded-xl" />
+                      ) : (
+                        <img src={viewingMediaUrl} alt="Proof Large" className="max-h-[80vh] w-full object-contain rounded-xl" />
+                      )}
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
             </div>
