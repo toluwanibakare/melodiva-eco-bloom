@@ -253,7 +253,7 @@ const OrderTracking = () => {
               {/* Damaged Policy Warning Banner */}
               <div className="mb-6 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-foreground gap-2">
                 <span className="leading-relaxed">
-                  <strong>Damaged or missing item?</strong> Inspect order on receipt. Take a photo/video proof within 24h for a prompt replacement.
+                  <strong>Damaged or missing item?</strong> Inspect order on receipt. Take a photo/video proof within 24h for a replacement consideration.
                 </span>
                 <Button
                   variant="ghost"

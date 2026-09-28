@@ -144,7 +144,7 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
             Report Issue for Order #{order.order_number}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Please inspect your order upon receipt. If an item arrives damaged or incorrect, upload photo/video proof within 24 hours for a prompt replacement.
+            Please inspect your order upon receipt. If an item arrives damaged or incorrect, upload photo/video proof within 24 hours for a replacement consideration.
           </DialogDescription>
         </DialogHeader>
 

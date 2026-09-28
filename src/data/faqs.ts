@@ -39,7 +39,7 @@ export const FAQS: FAQItem[] = [
   {
     id: "faq-6",
     question: "What should I do if my package arrives damaged?",
-    answer: "Please inspect your order upon receipt. If an item arrives damaged, take a photo/video immediately and contact our WhatsApp support (+234 807 872 5283) within 24 hours or report an issue on your order for a prompt replacement.",
+    answer: "Please inspect your order upon receipt. If an item arrives damaged, take a photo/video immediately and contact our WhatsApp support (+234 807 872 5283) within 24 hours or report an issue on your order for a replacement consideration.",
     category: "Orders & Refunds"
   },
   {

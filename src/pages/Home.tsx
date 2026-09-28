@@ -356,7 +356,7 @@ const Home = () => {
               Loved & Reviewed by <span className="gradient-text">Our Community</span>
             </h2>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
-              Read real, heartfelt reviews from customers across Nigeria who cherish Melodiva in their daily skincare routine.
+              Read real, heartfelt reviews from customers across Nigeria and internationally who cherish Melodiva.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mx-auto">
@@ -390,11 +390,11 @@ const Home = () => {
                 comment: "Fast delivery to Rivers State! The raw black soap tub is huge and lasts so long. Very gentle on sensitive skin."
               },
               {
-                name: "Tunde M.",
-                initials: "TM",
-                location: "Abeokuta, Nigeria",
-                rating: 4,
-                comment: "Impressive quality. The herbal black soap cleared my razor bumps within 2 weeks of consistent use."
+                name: "Jimi",
+                initials: "J",
+                location: "USA",
+                rating: 5,
+                comment: "Awesome product! I have been using it regularly. Today, my son forgot to use deodorant to school and I just had him spray a female body spray that I had in the vehicle. Usually after PE, he stinks but today he did not smell at all."
               }
             ].map((review, idx) => (
               <div key={idx} className="bg-card p-5 rounded-2xl shadow-sm hover:shadow-md border border-border/60 transition-all flex flex-col justify-between">
