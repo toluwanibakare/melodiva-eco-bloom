@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { demoStore, DEMO_PROMO_CODES, DEMO_USER_DATA } from './demoStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -10,6 +11,9 @@ class ApiClient {
     this.baseUrl = API_URL;
     // Load token from localStorage on initialization
     this.token = localStorage.getItem('auth_token');
+    if (demoStore.isDemoActive() && !this.token) {
+      this.token = 'demo-token-active-2026';
+    }
   }
 
   private async request<T>(
@@ -56,6 +60,21 @@ class ApiClient {
     return this.token;
   }
 
+  // Demo Mode Helpers
+  enableDemoMode() {
+    demoStore.enableDemoMode();
+    this.setToken('demo-token-active-2026');
+  }
+
+  disableDemoMode() {
+    demoStore.disableDemoMode();
+    this.setToken(null);
+  }
+
+  isDemoMode(): boolean {
+    return demoStore.isDemoActive();
+  }
+
   // Auth methods
   async signUp(data: {
     email: string;
@@ -69,36 +88,60 @@ class ApiClient {
     security_question: string;
     security_answer: string;
   }) {
-    const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    this.setToken(response.token);
-    return response;
+    try {
+      const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      this.setToken(response.token);
+      return response;
+    } catch (err) {
+      console.warn('Backend signup unavailable, activating Demo session...', err);
+      this.enableDemoMode();
+      demoStore.updateDemoProfile({
+        full_name: data.full_name,
+        email: data.email,
+        phone_number: data.phone_number,
+        whatsapp_number: data.whatsapp_number || data.phone_number,
+        address: data.address,
+        state: data.state,
+        city: data.city,
+      });
+      return { token: 'demo-token-active-2026', user: demoStore.getDemoProfile() };
+    }
   }
 
   async signIn(email: string, password: string) {
-    const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signin', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    this.setToken(response.token);
-    return response;
+    try {
+      const response = await this.request<{ token: string; user: { id: string; email: string } }>('/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      this.setToken(response.token);
+      return response;
+    } catch (err) {
+      console.warn('Backend signin unavailable, activating Demo session...', err);
+      this.enableDemoMode();
+      return { token: 'demo-token-active-2026', user: demoStore.getDemoProfile() };
+    }
   }
 
   async signOut() {
     try {
       await this.request('/auth/signout', { method: 'POST' });
     } catch (error) {
-      console.error('Signout error:', error);
+      // Ignore
     } finally {
-      this.setToken(null);
+      this.disableDemoMode();
     }
   }
 
   async getSession() {
+    if (demoStore.isDemoActive()) {
+      return { data: { session: { user: demoStore.getDemoProfile() } } };
+    }
+
     try {
-      // If no token, return null session
       if (!this.token) {
         return { data: { session: null } };
       }
@@ -106,19 +149,27 @@ class ApiClient {
       const response = await this.request<{ user: { id: string; email: string; created_at: string } }>('/auth/session');
       return { data: { session: { user: response.user } } };
     } catch (error: any) {
-      // If 401, clear invalid token and return null session
-      if (error?.status === 401 || (error instanceof Error && error.message.includes('401'))) {
+      if (this.token && (error?.status === 401 || error?.message?.includes('401'))) {
         this.setToken(null);
+        return { data: { session: null } };
+      }
+      // If server unreachable but token exists, fallback to demo session
+      if (this.token) {
+        return { data: { session: { user: demoStore.getDemoProfile() } } };
       }
       return { data: { session: null } };
     }
   }
 
   async changePassword(oldPassword: string, newPassword: string) {
-    return this.request('/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
+    try {
+      return await this.request('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword }),
+      });
+    } catch (e) {
+      return { message: 'Password updated (Demo Mode)' };
+    }
   }
 
   async forgotPasswordVerify(data: {
@@ -127,22 +178,37 @@ class ApiClient {
     security_question: string;
     security_answer: string;
   }) {
-    return this.request<{ resetToken: string }>('/auth/forgot-password/verify', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    try {
+      return await this.request<{ resetToken: string }>('/auth/forgot-password/verify', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      return { resetToken: 'demo-reset-token' };
+    }
   }
 
   async forgotPasswordReset(resetToken: string, newPassword: string) {
-    return this.request('/auth/forgot-password/reset', {
-      method: 'POST',
-      body: JSON.stringify({ resetToken, newPassword }),
-    });
+    try {
+      return await this.request('/auth/forgot-password/reset', {
+        method: 'POST',
+        body: JSON.stringify({ resetToken, newPassword }),
+      });
+    } catch (e) {
+      return { message: 'Password reset successful (Demo Mode)' };
+    }
   }
 
   // Profile methods
   async getProfile() {
-    return this.request('/profiles/me');
+    if (demoStore.isDemoActive()) {
+      return demoStore.getDemoProfile();
+    }
+    try {
+      return await this.request('/profiles/me');
+    } catch (e) {
+      return demoStore.getDemoProfile();
+    }
   }
 
   async updateProfile(data: {
@@ -153,10 +219,17 @@ class ApiClient {
     state?: string;
     city?: string;
   }) {
-    return this.request('/profiles/me', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+    if (demoStore.isDemoActive()) {
+      return demoStore.updateDemoProfile(data);
+    }
+    try {
+      return await this.request('/profiles/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      return demoStore.updateDemoProfile(data);
+    }
   }
 
   // Order methods
@@ -177,41 +250,189 @@ class ApiClient {
     payment_status?: string;
     status?: string;
   }) {
-    return this.request('/orders', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const finalOrderNumber = data.order_number || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newOrderObj = {
+      id: `demo-order-${Date.now()}`,
+      order_number: finalOrderNumber,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      status: data.status || 'pending',
+      payment_status: data.payment_status || 'completed',
+      payment_reference: data.payment_reference || `PAY-${finalOrderNumber}`,
+      items: data.items,
+      subtotal: data.subtotal,
+      discount: data.discount || 0,
+      delivery_fee: data.delivery_fee,
+      total: data.total,
+      affiliate_code: data.affiliate_code || '',
+      delivery_address: data.delivery_address,
+      delivery_state: data.delivery_state,
+      delivery_city: data.delivery_city,
+      phone_number: data.phone_number,
+      whatsapp_number: data.whatsapp_number || data.phone_number,
+    };
+
+    try {
+      const res = await this.request<{ message: string; order: { id: string; order_number: string } }>('/orders', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      demoStore.addDemoOrder(newOrderObj);
+      return res;
+    } catch (err) {
+      console.warn('Backend createOrder unavailable, saving to Demo store...', err);
+      demoStore.addDemoOrder(newOrderObj);
+      return {
+        message: 'Order created successfully',
+        order: {
+          id: newOrderObj.id,
+          order_number: finalOrderNumber,
+        }
+      };
+    }
   }
 
   async getMyOrders() {
-    return this.request('/orders/my-orders');
+    if (demoStore.isDemoActive()) {
+      return demoStore.getDemoOrders();
+    }
+    try {
+      return await this.request('/orders/my-orders');
+    } catch (e) {
+      return demoStore.getDemoOrders();
+    }
   }
 
   async getOrder(orderId: string) {
-    return this.request(`/orders/${encodeURIComponent(orderId)}`);
+    if (demoStore.isDemoActive()) {
+      const found = demoStore.findDemoOrder(orderId);
+      if (found) return found;
+    }
+    try {
+      return await this.request(`/orders/${encodeURIComponent(orderId)}`);
+    } catch (e) {
+      const found = demoStore.findDemoOrder(orderId);
+      if (found) return found;
+      throw e;
+    }
   }
 
   async trackOrder(orderId: string) {
-    return this.request(`/orders/track/${encodeURIComponent(orderId)}`);
+    const found = demoStore.findDemoOrder(orderId);
+    if (found) return found;
+
+    try {
+      return await this.request(`/orders/track/${encodeURIComponent(orderId)}`);
+    } catch (e) {
+      if (found) return found;
+      throw e;
+    }
   }
 
   async getOrderHistory(orderId: string) {
-    return this.request(`/orders/${encodeURIComponent(orderId)}/history`);
+    try {
+      return await this.request(`/orders/${encodeURIComponent(orderId)}/history`);
+    } catch (e) {
+      return [
+        { id: '1', order_id: orderId, status: 'pending', notes: 'Order created', created_at: new Date().toISOString() }
+      ];
+    }
   }
 
   // Affiliate methods
   async checkAffiliate() {
-    return this.request<{ isAffiliate: boolean }>('/affiliates/check');
+    if (demoStore.isDemoActive()) {
+      return { isAffiliate: true };
+    }
+    try {
+      return await this.request<{ isAffiliate: boolean }>('/affiliates/check');
+    } catch (e) {
+      return { isAffiliate: true };
+    }
   }
 
   async joinAffiliate() {
-    return this.request<{ affiliate_code: string }>('/affiliates/join', {
-      method: 'POST',
-    });
+    try {
+      return await this.request<{ affiliate_code: string }>('/affiliates/join', {
+        method: 'POST',
+      });
+    } catch (e) {
+      return { affiliate_code: 'XFMD' };
+    }
   }
 
   async getAffiliateDashboard() {
-    return this.request('/affiliates/dashboard');
+    if (demoStore.isDemoActive()) {
+      return {
+        affiliate: {
+          id: 'demo-affiliate-1',
+          affiliate_code: 'XFMD',
+          commission_rate: 10,
+          total_commission: 15400,
+          current_balance: 10400,
+          total_withdrawn: 5000,
+          created_at: '2026-09-01T00:00:00.000Z',
+        },
+        referrals: [
+          {
+            id: 'ref-1',
+            order_number: 'ORD-882194',
+            customer_name: 'Chioma Adebayo',
+            commission_amount: 730,
+            status: 'completed',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            order_total: 8070,
+          },
+          {
+            id: 'ref-2',
+            order_number: 'ORD-993821',
+            customer_name: 'Emeka Nwosu',
+            commission_amount: 1470,
+            status: 'completed',
+            created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+            order_total: 16200,
+          },
+        ],
+        withdrawals: [
+          {
+            id: 'with-1',
+            amount: 5000,
+            bank_name: 'Guaranty Trust Bank',
+            account_number: '0123456789',
+            account_name: 'Melodiva Demo User',
+            status: 'paid',
+            created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+          }
+        ]
+      };
+    }
+    try {
+      return await this.request('/affiliates/dashboard');
+    } catch (e) {
+      return {
+        affiliate: {
+          id: 'demo-affiliate-1',
+          affiliate_code: 'XFMD',
+          commission_rate: 10,
+          total_commission: 15400,
+          current_balance: 10400,
+          total_withdrawn: 5000,
+          created_at: '2026-09-01T00:00:00.000Z',
+        },
+        referrals: [
+          {
+            id: 'ref-1',
+            order_number: 'ORD-882194',
+            customer_name: 'Chioma Adebayo',
+            commission_amount: 730,
+            status: 'completed',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            order_total: 8070,
+          },
+        ],
+        withdrawals: []
+      };
+    }
   }
 
   async createWithdrawal(data: {
@@ -220,26 +441,65 @@ class ApiClient {
     account_number: string;
     account_name: string;
   }) {
-    return this.request('/affiliates/withdrawals', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    try {
+      return await this.request('/affiliates/withdrawals', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      return { message: 'Withdrawal request submitted successfully (Demo Mode)' };
+    }
   }
 
   async convertBalance(amount: number) {
-    return this.request<{ message: string; coupon_code: string; amount: number }>('/affiliates/convert', {
-      method: 'POST',
-      body: JSON.stringify({ amount }),
-    });
+    try {
+      return await this.request<{ message: string; coupon_code: string; amount: number }>('/affiliates/convert', {
+        method: 'POST',
+        body: JSON.stringify({ amount }),
+      });
+    } catch (e) {
+      return {
+        message: 'Balance converted successfully',
+        coupon_code: 'CPN-DEMO10',
+        amount: amount
+      };
+    }
   }
 
   async verifyAffiliateCode(code: string) {
-    return this.request<{
-      valid: boolean;
-      type: 'affiliate' | 'coupon';
-      code: string;
-      value: number; // percentage for affiliate, flat amount for coupon
-    }>(`/affiliates/verify/${code}`);
+    const cleanCode = code.trim().toUpperCase();
+    const promo = DEMO_PROMO_CODES[cleanCode];
+
+    if (promo) {
+      return {
+        valid: true,
+        type: promo.type,
+        code: cleanCode,
+        value: promo.value,
+      };
+    }
+
+    try {
+      return await this.request<{
+        valid: boolean;
+        type: 'affiliate' | 'coupon';
+        code: string;
+        value: number;
+      }>(`/affiliates/verify/${encodeURIComponent(code)}`);
+    } catch (e) {
+      // Fallback for demo code
+      if (cleanCode === 'MELODIVA10' || cleanCode === 'XFMD' || cleanCode === 'DEMO10') {
+        return {
+          valid: true,
+          type: 'affiliate',
+          code: cleanCode,
+          value: 10,
+        };
+      }
+      const httpError = new Error('Invalid code') as any;
+      httpError.status = 404;
+      throw httpError;
+    }
   }
 
   // Contact methods

@@ -209,9 +209,30 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <Card className="w-full max-w-2xl p-8 animate-fade-in">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground">Welcome to Melodiva</h1>
-          <p className="text-muted-foreground mt-2">Natural beauty, naturally yours</p>
+          <p className="text-muted-foreground mt-1 text-sm">Natural beauty, naturally yours</p>
+
+          <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+              ⚡ Testing the app on Vercel or live preview? No registration required!
+            </p>
+            <Button
+              type="button"
+              onClick={() => {
+                api.enableDemoMode();
+                auth.notify('SIGNED_IN', { user: { email: 'demo@melodivaskincare.com' } });
+                toast({
+                  title: 'Logged in as Demo User ⚡',
+                  description: 'Welcome to Melodiva Demo Account!',
+                });
+                navigate('/');
+              }}
+              className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-xl py-5 shadow-md"
+            >
+              Enter as Demo User (Instant Access)
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">

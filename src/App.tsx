@@ -29,6 +29,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import ShippingInfo from "./pages/ShippingInfo";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
+import { DemoBanner } from "./components/DemoBanner";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {!isChecklistPage && <DemoBanner />}
       {!isChecklistPage && !isProductDetailPage && <Header />}
       <main className="flex-1">
         <Routes>
