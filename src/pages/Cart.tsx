@@ -18,7 +18,8 @@ const Cart = () => {
     affiliateCode,
     affiliateDiscount,
     setAffiliateCode,
-    setAffiliateDiscount
+    setAffiliateDiscount,
+    setAppliedCoupon
   } = useCartStore();
 
   const { toast } = useToast();
@@ -37,7 +38,7 @@ const Cart = () => {
     if (!codeInput.trim()) {
       toast({
         title: "Error",
-        description: "Please enter an affiliate code",
+        description: "Please enter a promo or coupon code",
         variant: "destructive"
       });
       return;
@@ -51,19 +52,39 @@ const Cart = () => {
       if (!data.valid) {
         toast({
           title: "Invalid Code",
-          description: "The code you entered is not valid",
+          description: "The code you entered is not valid or active",
           variant: "destructive"
         });
         return;
       }
 
       const subtotal = getTotal();
+
+      // Check min order spend requirement if any
+      if (data.min_order_amount && subtotal < data.min_order_amount) {
+        toast({
+          title: "Minimum Order Required",
+          description: `This code requires a minimum order subtotal of ${formatPrice(data.min_order_amount)}. Add ${formatPrice(data.min_order_amount - subtotal)} more to qualify!`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       let discount = 0;
       let message = "";
 
       if (data.type === 'coupon') {
-        discount = data.value;
-        message = `Coupon applied! You saved ${formatPrice(discount)}.`;
+        const dType = data.discount_type || 'fixed';
+        if (dType === 'free_delivery') {
+          discount = 0; // Free delivery discount applied directly on shipping fee at checkout
+          message = `🚀 Free Delivery Coupon Applied! Delivery fee will be ₦0 at checkout (Orders over ${formatPrice(data.min_order_amount || 0)}).`;
+        } else if (dType === 'percentage') {
+          discount = (subtotal * (data.value / 100));
+          message = `Coupon applied! ${data.value}% discount saved ${formatPrice(discount)}.`;
+        } else {
+          discount = data.value;
+          message = `Coupon applied! You saved ${formatPrice(discount)}.`;
+        }
       } else {
         // Affiliate code gives 5% discount
         discount = subtotal * 0.05;
@@ -72,15 +93,23 @@ const Cart = () => {
 
       setAffiliateCode(codeInput.trim().toUpperCase());
       setAffiliateDiscount(discount);
+      setAppliedCoupon({
+        code: data.code,
+        type: data.type,
+        discount_type: data.discount_type,
+        amount: data.value,
+        min_order_amount: data.min_order_amount,
+        expiry_date: data.expiry_date
+      });
 
       toast({
         title: "Code Applied!",
         description: message,
       });
-    } catch {
+    } catch (err: any) {
       toast({
         title: "Error",
-        description: "Failed to apply code. Please try again.",
+        description: err?.message || "Failed to apply code. Please try again.",
         variant: "destructive"
       });
     } finally {

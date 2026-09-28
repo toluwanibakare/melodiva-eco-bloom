@@ -2,15 +2,26 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem } from '@/types/product';
 
+export interface AppliedCoupon {
+  code: string;
+  type: 'affiliate' | 'coupon';
+  discount_type?: 'fixed' | 'percentage' | 'free_delivery';
+  amount?: number;
+  min_order_amount?: number;
+  expiry_date?: string | null;
+}
+
 interface CartStore {
   items: CartItem[];
   affiliateCode: string;
   affiliateDiscount: number;
+  appliedCoupon: AppliedCoupon | null;
   addItem: (item: CartItem) => void;
   removeItem: (productId: string, variant?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, variant?: string, size?: string) => void;
   setAffiliateCode: (code: string) => void;
   setAffiliateDiscount: (discount: number) => void;
+  setAppliedCoupon: (coupon: AppliedCoupon | null) => void;
   clearCart: () => void;
   getTotal: () => number;
   getTotalWithDiscount: () => number;
@@ -22,6 +33,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       affiliateCode: '',
       affiliateDiscount: 0,
+      appliedCoupon: null,
       
       addItem: (item) => set((state) => {
         const existingIndex = state.items.findIndex(
@@ -61,7 +73,9 @@ export const useCartStore = create<CartStore>()(
 
       setAffiliateDiscount: (discount) => set({ affiliateDiscount: discount }),
 
-      clearCart: () => set({ items: [], affiliateCode: '', affiliateDiscount: 0 }),
+      setAppliedCoupon: (coupon) => set({ appliedCoupon: coupon }),
+
+      clearCart: () => set({ items: [], affiliateCode: '', affiliateDiscount: 0, appliedCoupon: null }),
 
       getTotal: () => {
         const items = get().items;
@@ -71,7 +85,7 @@ export const useCartStore = create<CartStore>()(
       getTotalWithDiscount: () => {
         const total = get().getTotal();
         const discount = get().affiliateDiscount;
-        return total - discount;
+        return Math.max(0, total - discount);
       },
     }),
     {

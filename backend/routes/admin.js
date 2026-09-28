@@ -406,4 +406,94 @@ router.put('/order-issues/:id', async (req, res) => {
   }
 });
 
+// Admin Coupon Management
+router.get('/coupons', async (req, res) => {
+  try {
+    const [coupons] = await pool.execute(
+      `SELECT id, code, discount_type, amount, min_order_amount, expiry_date, status, is_active, user_id, created_at, used_at
+       FROM coupons
+       ORDER BY created_at DESC`
+    );
+    res.json(coupons);
+  } catch (error) {
+    console.error('Get admin coupons error:', error);
+    res.status(500).json({ error: 'Failed to fetch coupons' });
+  }
+});
+
+router.post('/coupons', async (req, res) => {
+  try {
+    const { code, discount_type, amount, min_order_amount, expiry_date } = req.body;
+    if (!code) {
+      return res.status(400).json({ error: 'Coupon code is required' });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+    const [existing] = await pool.execute('SELECT id FROM coupons WHERE code = ?', [normalizedCode]);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Coupon code already exists' });
+    }
+
+    const id = generateUUID();
+    const type = discount_type || 'fixed';
+    const numAmount = amount ? parseFloat(amount) : 0;
+    const numMin = min_order_amount ? parseFloat(min_order_amount) : 0;
+    const expiry = expiry_date ? new Date(expiry_date) : null;
+
+    await pool.execute(
+      `INSERT INTO coupons (id, code, discount_type, amount, min_order_amount, expiry_date, status, is_active, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'active', 1, NOW())`,
+      [id, normalizedCode, type, numAmount, numMin, expiry]
+    );
+
+    res.status(201).json({
+      message: 'Coupon created successfully',
+      coupon: {
+        id,
+        code: normalizedCode,
+        discount_type: type,
+        amount: numAmount,
+        min_order_amount: numMin,
+        expiry_date: expiry,
+        status: 'active',
+        is_active: true
+      }
+    });
+  } catch (error) {
+    console.error('Create admin coupon error:', error);
+    res.status(500).json({ error: 'Failed to create coupon' });
+  }
+});
+
+router.put('/coupons/:id/toggle', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    const activeState = is_active ? 1 : 0;
+    const statusState = is_active ? 'active' : 'inactive';
+
+    await pool.execute(
+      `UPDATE coupons SET is_active = ?, status = ? WHERE id = ?`,
+      [activeState, statusState, id]
+    );
+
+    res.json({ message: 'Coupon status updated successfully' });
+  } catch (error) {
+    console.error('Toggle admin coupon error:', error);
+    res.status(500).json({ error: 'Failed to update coupon' });
+  }
+});
+
+router.delete('/coupons/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.execute('DELETE FROM coupons WHERE id = ?', [id]);
+    res.json({ message: 'Coupon deleted successfully' });
+  } catch (error) {
+    console.error('Delete admin coupon error:', error);
+    res.status(500).json({ error: 'Failed to delete coupon' });
+  }
+});
+
 export default router;

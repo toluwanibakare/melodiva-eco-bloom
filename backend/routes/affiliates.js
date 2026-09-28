@@ -327,20 +327,23 @@ router.get('/verify/:code', async (req, res) => {
 
     // 2. Check Coupons
     const [coupons] = await pool.execute(
-      'SELECT id, code, amount FROM coupons WHERE code = ? AND status = "active"',
-      [normalizedCode] // Coupon codes are stored as generated (likely uppercase prefix, ensuring generic)
+      'SELECT id, code, discount_type, amount, min_order_amount, expiry_date, status, is_active FROM coupons WHERE UPPER(code) = ? AND (is_active = TRUE OR status = "active")',
+      [normalizedCode]
     );
 
-    // Note: Assuming strict case match for simplicity, or we ensure storage is Upper
-    // Let's assume user input might be mixed, so let's try to match case insensitive if DB collation allows
-    // But normalizedCode is Upper. My generator uses Upper. So standardizing on Upper is good.
-
     if (coupons.length > 0) {
+      const c = coupons[0];
+      if (c.expiry_date && new Date(c.expiry_date) < new Date()) {
+        return res.status(400).json({ error: 'Coupon has expired' });
+      }
       return res.json({
         valid: true,
         type: 'coupon',
-        code: coupons[0].code,
-        value: coupons[0].amount
+        code: c.code,
+        discount_type: c.discount_type || 'fixed',
+        value: Number(c.amount || 0),
+        min_order_amount: Number(c.min_order_amount || 0),
+        expiry_date: c.expiry_date
       });
     }
 

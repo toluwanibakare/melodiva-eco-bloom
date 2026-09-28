@@ -48,7 +48,7 @@ interface PaystackResponse {
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { items, getTotal, affiliateCode, affiliateDiscount, clearCart } = useCartStore();
+  const { items, getTotal, affiliateCode, affiliateDiscount, appliedCoupon, clearCart } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -63,6 +63,16 @@ const Checkout = () => {
   // Delivery Fee & Option State
   const [selectedOptionId, setSelectedOptionId] = useState<string>('lagos_doorstep');
   const [deliveryFee, setDeliveryFee] = useState<number>(2500);
+
+  const subtotal = getTotal();
+
+  // Check if free delivery coupon applies
+  const isFreeDeliveryApplied =
+    appliedCoupon?.discount_type === 'free_delivery' &&
+    subtotal >= (appliedCoupon.min_order_amount || 0);
+
+  const effectiveDeliveryFee = isFreeDeliveryApplied ? 0 : deliveryFee;
+  const total = Math.max(0, subtotal - affiliateDiscount + effectiveDeliveryFee);
 
   // Available delivery options based on state
   const availableDeliveryOptions = getDeliveryOptionsForState(deliveryState);
@@ -183,10 +193,7 @@ const Checkout = () => {
 
     setProcessing(true);
 
-    const subtotal = getTotal();
     const discount = affiliateDiscount;
-    // deliveryFee is now from state
-    const total = subtotal - discount + deliveryFee;
     const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
     if (!paystackKey) {
@@ -364,11 +371,6 @@ const Checkout = () => {
       </div>
     );
   }
-
-  const subtotal = getTotal();
-  const discount = affiliateDiscount;
-  // deliveryFee state used
-  const total = subtotal - discount + deliveryFee;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -579,15 +581,21 @@ const Checkout = () => {
                 <span>Subtotal</span>
                 <span className="font-semibold">{formatPrice(subtotal)}</span>
               </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600 dark:text-green-400">
-                  <span>Discount (5%)</span>
-                  <span>-{formatPrice(discount)}</span>
+              {affiliateDiscount > 0 && (
+                <div className="flex justify-between text-green-600 dark:text-green-400 text-sm font-medium">
+                  <span>Discount ({affiliateCode})</span>
+                  <span>-{formatPrice(affiliateDiscount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Delivery Fee</span>
-                <span>{formatPrice(deliveryFee)}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Delivery Fee</span>
+                {isFreeDeliveryApplied ? (
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded text-xs">
+                    FREE (October Launch Offer)
+                  </span>
+                ) : (
+                  <span className="font-medium text-foreground">{formatPrice(deliveryFee)}</span>
+                )}
               </div>
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
                 <span>Total</span>

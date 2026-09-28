@@ -64,7 +64,7 @@ const Home = () => {
         <div className="relative z-10 container mx-auto px-4 md:px-8 text-center text-white max-w-4xl space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-emerald-400/30 text-xs md:text-sm font-extrabold tracking-wide shadow-lg">
             <Leaf className="h-4 w-4 text-emerald-400" />
-            <span>100% Handcrafted Raw Nigerian Botanicals</span>
+            <span>100% Natural Nigerian Skincare</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-tight animate-fade-in-up">

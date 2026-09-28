@@ -57,7 +57,12 @@ import {
   Sparkles,
   Eye,
   Video,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Ticket,
+  Tag,
+  Gift,
+  Percent,
+  Copy
 } from "lucide-react";
 import {
   BarChart,
@@ -182,7 +187,7 @@ export default function AdminPanel() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "orders" | "products" | "users" | "affiliates" | "delivery" | "inquiries" | "settings"
+    "overview" | "orders" | "products" | "users" | "affiliates" | "delivery" | "inquiries" | "coupons" | "settings"
   >("overview");
 
   const [loading, setLoading] = useState(true);
@@ -193,6 +198,18 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [affiliates, setAffiliates] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
+
+  // Coupons State
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [couponFormOpen, setCouponFormOpen] = useState(false);
+  const [savingCoupon, setSavingCoupon] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    discount_type: "free_delivery" as "fixed" | "percentage" | "free_delivery",
+    amount: 0,
+    min_order_amount: 20000,
+    expiry_date: "2026-10-31"
+  });
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -297,10 +314,106 @@ export default function AdminPanel() {
     init();
   }, [navigate, adminEmails, toast]);
 
+  const handleCreateCoupon = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!couponForm.code.trim()) {
+      toast({ title: "Error", description: "Coupon code is required.", variant: "destructive" });
+      return;
+    }
+
+    setSavingCoupon(true);
+    try {
+      await api.createAdminCoupon({
+        code: couponForm.code.trim().toUpperCase(),
+        discount_type: couponForm.discount_type,
+        amount: Number(couponForm.amount || 0),
+        min_order_amount: Number(couponForm.min_order_amount || 0),
+        expiry_date: couponForm.expiry_date ? `${couponForm.expiry_date}T23:59:59Z` : null
+      });
+
+      toast({
+        title: "Coupon Created! 🚀",
+        description: `Code ${couponForm.code.toUpperCase()} is active now.`
+      });
+
+      setCouponFormOpen(false);
+      setCouponForm({
+        code: "",
+        discount_type: "fixed",
+        amount: 1000,
+        min_order_amount: 0,
+        expiry_date: ""
+      });
+
+      const updatedCoupons = await api.getAdminCoupons();
+      setCoupons(Array.isArray(updatedCoupons) ? updatedCoupons : []);
+    } catch (err: any) {
+      toast({
+        title: "Error creating coupon",
+        description: err?.message || "Failed to create coupon code.",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingCoupon(false);
+    }
+  };
+
+  const handleCreateOctoberLaunchPreset = async () => {
+    setSavingCoupon(true);
+    try {
+      await api.createAdminCoupon({
+        code: "OCTOBERFREE",
+        discount_type: "free_delivery",
+        amount: 0,
+        min_order_amount: 20000,
+        expiry_date: "2026-10-31T23:59:59Z"
+      });
+
+      toast({
+        title: "October Campaign Coupon Activated! 🎉",
+        description: "OCTOBERFREE (Free Delivery over ₦20,000 through Oct 31, 2026) is active."
+      });
+
+      const updatedCoupons = await api.getAdminCoupons();
+      setCoupons(Array.isArray(updatedCoupons) ? updatedCoupons : []);
+    } catch (err: any) {
+      toast({
+        title: "October Campaign Ready",
+        description: err?.message || "OCTOBERFREE coupon preset loaded."
+      });
+    } finally {
+      setSavingCoupon(false);
+    }
+  };
+
+  const handleToggleCoupon = async (id: string, currentActiveState: boolean) => {
+    try {
+      await api.toggleAdminCoupon(id, !currentActiveState);
+      toast({
+        title: !currentActiveState ? "Coupon Activated" : "Coupon Deactivated",
+        description: "Status updated successfully."
+      });
+      setCoupons(prev => prev.map(c => c.id === id ? { ...c, is_active: !currentActiveState, status: !currentActiveState ? 'active' : 'inactive' } : c));
+    } catch {
+      toast({ title: "Error", description: "Failed to update coupon status.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCoupon = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this coupon code?")) return;
+    try {
+      await api.deleteAdminCoupon(id);
+      toast({ title: "Coupon Deleted", description: "The coupon code was removed." });
+      setCoupons(prev => prev.filter(c => c.id !== id));
+    } catch {
+      toast({ title: "Error", description: "Failed to delete coupon.", variant: "destructive" });
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData, messagesData, issuesData] =
+      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData, messagesData, issuesData, couponsData] =
         await Promise.all([
           api.getAdminOrders(),
           api.getAdminProfiles(),
@@ -309,7 +422,8 @@ export default function AdminPanel() {
           api.getAdminAffiliates().catch(() => []),
           api.getAdminWithdrawals().catch(() => []),
           api.getAdminContactMessages().catch(() => []),
-          api.getAdminOrderIssues().catch(() => [])
+          api.getAdminOrderIssues().catch(() => []),
+          api.getAdminCoupons().catch(() => [])
         ]);
 
       setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -318,6 +432,7 @@ export default function AdminPanel() {
       setWithdrawals(Array.isArray(withdrawalsData) ? withdrawalsData : []);
       setContactMessages(Array.isArray(messagesData) ? messagesData : []);
       setOrderIssues(Array.isArray(issuesData) ? issuesData : []);
+      setCoupons(Array.isArray(couponsData) ? couponsData : []);
 
       if (Array.isArray(productsData)) {
         setProductError(null);
@@ -582,6 +697,7 @@ export default function AdminPanel() {
     { id: "affiliates", label: "Affiliates & Payouts", icon: Handshake, badge: null },
     { id: "delivery", label: "Shipping Rates", icon: Truck, badge: null },
     { id: "inquiries", label: "Messages & Support", icon: MessageSquare, badge: totalSupportBadge > 0 ? totalSupportBadge : null },
+    { id: "coupons", label: "Coupons & Launch Codes", icon: Ticket, badge: coupons.filter(c => c.is_active || c.status === 'active').length || null },
     { id: "settings", label: "Store Settings", icon: Settings, badge: null },
   ];
 
@@ -1906,6 +2022,332 @@ export default function AdminPanel() {
                       )}
                     </div>
                   )}
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+
+          {/* TAB: COUPONS MANAGEMENT */}
+          {activeTab === "coupons" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+                    <Ticket className="w-6 h-6 text-primary" />
+                    <span>Coupon Codes & Launch Campaigns</span>
+                  </h1>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Create promo codes, configure minimum spend limits, set discount amounts or free delivery offers, and set expiry dates.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <Button
+                    onClick={handleCreateOctoberLaunchPreset}
+                    disabled={savingCoupon}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+                  >
+                    <Gift className="w-4 h-4" />
+                    <span>🚀 Launch Free Delivery (Oct &gt; 20k)</span>
+                  </Button>
+                  <Button
+                    onClick={() => setCouponFormOpen(true)}
+                    className="btn-primary rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Custom Coupon</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Campaign Highlight Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-900/30 via-emerald-800/20 to-teal-900/30 border border-emerald-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-foreground flex items-center gap-2">
+                      <span>October Launch Campaign: Free Delivery on Orders Over ₦20,000</span>
+                      <Badge className="bg-emerald-500 text-white text-[10px] uppercase tracking-wider font-extrabold">Active</Badge>
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Code: <code className="font-mono font-bold text-primary px-1.5 py-0.5 bg-primary/10 rounded">OCTOBERFREE</code> — Customers get 100% free delivery across Nigeria throughout October when their order subtotal is ₦20,000 or more.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText('OCTOBERFREE');
+                    toast({ title: 'Copied to Clipboard!', description: 'Code OCTOBERFREE copied.' });
+                  }}
+                  className="rounded-xl text-xs font-bold gap-1.5 shrink-0 bg-background/50 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Code</span>
+                </Button>
+              </div>
+
+              {/* Metric Stat Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card className="p-4 border-border shadow-xs flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Total Coupons</p>
+                    <h3 className="text-2xl font-black text-foreground mt-1">{coupons.length}</h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                </Card>
+                <Card className="p-4 border-border shadow-xs flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Active Campaigns</p>
+                    <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                      {coupons.filter(c => c.is_active !== false && c.status !== 'inactive').length}
+                    </h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                </Card>
+                <Card className="p-4 border-border shadow-xs flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Free Delivery Offers</p>
+                    <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                      {coupons.filter(c => c.discount_type === 'free_delivery').length}
+                    </h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                </Card>
+              </div>
+
+              {/* Coupons Table */}
+              <Card className="border-border shadow-sm overflow-hidden">
+                <CardHeader className="py-4 px-6 border-b border-border bg-secondary/20">
+                  <CardTitle className="text-sm font-bold text-foreground">Available Store Coupon Codes</CardTitle>
+                  <CardDescription className="text-xs">
+                    List of all active and historical promotional discount codes.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-bold text-xs">Coupon Code</TableHead>
+                        <TableHead className="font-bold text-xs">Discount Type</TableHead>
+                        <TableHead className="font-bold text-xs">Value / Offer</TableHead>
+                        <TableHead className="font-bold text-xs">Min Order Spend</TableHead>
+                        <TableHead className="font-bold text-xs">Expiry Date</TableHead>
+                        <TableHead className="font-bold text-xs">Status</TableHead>
+                        <TableHead className="font-bold text-xs text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {coupons.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-12 text-xs text-muted-foreground font-medium">
+                            No coupon codes created yet. Click "Create Custom Coupon" or launch the October campaign offer above.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        coupons.map((coupon) => {
+                          const isActive = coupon.is_active !== false && coupon.status !== 'inactive';
+                          const isExpired = coupon.expiry_date && new Date(coupon.expiry_date) < new Date();
+                          const dType = coupon.discount_type || 'fixed';
+
+                          return (
+                            <TableRow key={coupon.id || coupon.code} className="hover:bg-secondary/30 transition-colors">
+                              <TableCell className="text-xs font-mono font-black text-foreground">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                                  <span>{coupon.code}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] uppercase font-extrabold ${
+                                    dType === 'free_delivery'
+                                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                                      : dType === 'percentage'
+                                      ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                                      : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                                  }`}
+                                >
+                                  {dType === 'free_delivery' ? 'Free Delivery' : dType === 'percentage' ? 'Percentage Off' : 'Fixed Amount'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs font-bold text-foreground">
+                                {dType === 'free_delivery'
+                                  ? '100% Free Shipping'
+                                  : dType === 'percentage'
+                                  ? `${coupon.amount}% Off`
+                                  : formatPrice(coupon.amount)}
+                              </TableCell>
+                              <TableCell className="text-xs font-medium text-foreground">
+                                {coupon.min_order_amount > 0 ? formatPrice(coupon.min_order_amount) : 'No Minimum'}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground font-medium">
+                                {coupon.expiry_date
+                                  ? new Date(coupon.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                  : 'No Expiration'}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {isExpired ? (
+                                  <Badge className="bg-red-500 text-white text-[10px]">Expired</Badge>
+                                ) : (
+                                  <Badge className={isActive ? 'bg-emerald-500 text-white text-[10px]' : 'bg-slate-500 text-white text-[10px]'}>
+                                    {isActive ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right py-3">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(coupon.code);
+                                      toast({ title: 'Copied!', description: `Code ${coupon.code} copied to clipboard.` });
+                                    }}
+                                    className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleToggleCoupon(coupon.id, isActive)}
+                                    className="h-8 text-[11px] font-bold rounded-xl px-2.5"
+                                  >
+                                    {isActive ? 'Deactivate' : 'Activate'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteCoupon(coupon.id)}
+                                    className="h-8 w-8 p-0 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Create Custom Coupon Dialog Modal */}
+              <Dialog open={couponFormOpen} onOpenChange={setCouponFormOpen}>
+                <DialogContent className="sm:max-w-md rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                      <Ticket className="w-5 h-5 text-primary" />
+                      <span>Create New Coupon Code</span>
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateCoupon} className="space-y-4 py-2 text-xs">
+                    <div className="space-y-2">
+                      <Label htmlFor="coupon_code" className="font-bold text-xs">Coupon Code (Uppercase)</Label>
+                      <Input
+                        id="coupon_code"
+                        placeholder="e.g. OCTOBERFREE, LAUNCH20, SAVE5000"
+                        value={couponForm.code}
+                        onChange={(e) => setCouponForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                        className="text-xs font-mono uppercase font-bold rounded-xl"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-bold text-xs">Discount Type</Label>
+                      <Select
+                        value={couponForm.discount_type}
+                        onValueChange={(val: any) => setCouponForm(f => ({ ...f, discount_type: val }))}
+                      >
+                        <SelectTrigger className="w-full text-xs rounded-xl h-10">
+                          <SelectValue placeholder="Select discount type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="free_delivery">🚀 Free Delivery (Waive Shipping Fee)</SelectItem>
+                          <SelectItem value="percentage">Percentage Discount (%)</SelectItem>
+                          <SelectItem value="fixed">Fixed Naira Discount (₦)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {couponForm.discount_type !== 'free_delivery' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="coupon_amount" className="font-bold text-xs">
+                          {couponForm.discount_type === 'percentage' ? 'Discount Percentage (%)' : 'Discount Amount (₦)'}
+                        </Label>
+                        <Input
+                          id="coupon_amount"
+                          type="number"
+                          min="0"
+                          placeholder={couponForm.discount_type === 'percentage' ? '10' : '1000'}
+                          value={couponForm.amount || ''}
+                          onChange={(e) => setCouponForm(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))}
+                          className="text-xs rounded-xl"
+                          required
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="coupon_min_spend" className="font-bold text-xs">
+                        Minimum Order Subtotal (₦)
+                      </Label>
+                      <Input
+                        id="coupon_min_spend"
+                        type="number"
+                        min="0"
+                        placeholder="20000 (Leave 0 for no minimum spend)"
+                        value={couponForm.min_order_amount || ''}
+                        onChange={(e) => setCouponForm(f => ({ ...f, min_order_amount: parseFloat(e.target.value) || 0 }))}
+                        className="text-xs rounded-xl"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Order subtotal must equal or exceed this amount for the coupon to apply.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="coupon_expiry" className="font-bold text-xs">Expiry Date (Optional)</Label>
+                      <Input
+                        id="coupon_expiry"
+                        type="date"
+                        value={couponForm.expiry_date}
+                        onChange={(e) => setCouponForm(f => ({ ...f, expiry_date: e.target.value }))}
+                        className="text-xs rounded-xl"
+                      />
+                    </div>
+
+                    <DialogFooter className="pt-3 gap-2 sm:gap-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCouponFormOpen(false)}
+                        className="rounded-xl text-xs font-bold"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={savingCoupon}
+                        className="btn-primary rounded-xl text-xs font-bold gap-1.5"
+                      >
+                        {savingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                        <span>Create Coupon Code</span>
+                      </Button>
+                    </DialogFooter>
+                  </form>
                 </DialogContent>
               </Dialog>
             </div>

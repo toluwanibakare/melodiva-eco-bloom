@@ -282,15 +282,29 @@ CREATE TABLE IF NOT EXISTS delivery_pricing (
 CREATE TABLE IF NOT EXISTS coupons (
   id CHAR(36) PRIMARY KEY,
   code VARCHAR(50) NOT NULL UNIQUE,
-  amount DECIMAL(10,2) NOT NULL,
-  status ENUM('active', 'used') NOT NULL DEFAULT 'active',
-  user_id CHAR(36) NOT NULL,
+  discount_type VARCHAR(20) NOT NULL DEFAULT 'fixed',
+  amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  min_order_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  expiry_date TIMESTAMP NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  user_id CHAR(36) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   used_at TIMESTAMP NULL,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_coupons_code ON coupons(code);
+
+-- Seed October Free Delivery Launch Coupon
+INSERT INTO coupons (id, code, discount_type, amount, min_order_amount, expiry_date, status, is_active)
+VALUES (UUID(), 'OCTOBERFREE', 'free_delivery', 0.00, 20000.00, '2026-10-31 23:59:59', 'active', 1)
+ON DUPLICATE KEY UPDATE 
+discount_type = 'free_delivery',
+min_order_amount = 20000.00,
+expiry_date = '2026-10-31 23:59:59',
+status = 'active',
+is_active = 1;
 
 DELIMITER ;
 

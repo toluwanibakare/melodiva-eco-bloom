@@ -306,12 +306,83 @@ class ApiClient {
   }
 
   async verifyAffiliateCode(code: string) {
-    return await this.request<{
-      valid: boolean;
-      type: 'affiliate' | 'coupon';
-      code: string;
-      value: number;
-    }>(`/affiliates/verify/${encodeURIComponent(code)}`);
+    const normalizedCode = code.trim().toUpperCase();
+    try {
+      const res = await this.request<{
+        valid: boolean;
+        type: 'affiliate' | 'coupon';
+        code: string;
+        value: number;
+        discount_type?: 'fixed' | 'percentage' | 'free_delivery';
+        min_order_amount?: number;
+        expiry_date?: string | null;
+      }>(`/affiliates/verify/${encodeURIComponent(normalizedCode)}`);
+      return res;
+    } catch (e) {
+      console.warn('API verify code endpoint unavailable, checking Supabase...', e);
+    }
+
+    try {
+      // 1. Check Affiliates
+      const { data: affData } = await supabase
+        .from('affiliates')
+        .select('*')
+        .eq('affiliate_code', normalizedCode)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (affData) {
+        return {
+          valid: true,
+          type: 'affiliate' as const,
+          code: affData.affiliate_code,
+          value: Number(affData.commission_rate || 5)
+        };
+      }
+
+      // 2. Check Coupons
+      const { data: couponData } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', normalizedCode)
+        .maybeSingle();
+
+      if (couponData && (couponData.is_active !== false && couponData.status !== 'inactive')) {
+        if (couponData.expiry_date && new Date(couponData.expiry_date) < new Date()) {
+          throw new Error('Coupon code has expired');
+        }
+        return {
+          valid: true,
+          type: 'coupon' as const,
+          code: couponData.code,
+          discount_type: (couponData.discount_type || 'fixed') as 'fixed' | 'percentage' | 'free_delivery',
+          value: Number(couponData.amount || 0),
+          min_order_amount: Number(couponData.min_order_amount || 0),
+          expiry_date: couponData.expiry_date || null
+        };
+      }
+
+      // Fallback launch code check for OCTOBERFREE
+      if (normalizedCode === 'OCTOBERFREE') {
+        const now = new Date();
+        const expiry = new Date('2026-10-31T23:59:59Z');
+        if (now <= expiry) {
+          return {
+            valid: true,
+            type: 'coupon' as const,
+            code: 'OCTOBERFREE',
+            discount_type: 'free_delivery' as const,
+            value: 0,
+            min_order_amount: 20000,
+            expiry_date: '2026-10-31T23:59:59Z'
+          };
+        }
+      }
+
+      throw new Error('Invalid promo or coupon code');
+    } catch (err: any) {
+      throw new Error(err?.message || 'Invalid promo code');
+    }
   }
 
   // Contact methods
@@ -572,6 +643,123 @@ class ApiClient {
         .eq('id', id);
       if (error) throw error;
       return { success: true, data: res };
+    }
+  }
+
+  // Admin Coupon Management Methods
+  async getAdminCoupons() {
+    try {
+      const res = await this.request<any[]>('/admin/coupons');
+      if (Array.isArray(res)) return res;
+    } catch (e) {
+      console.warn('API /admin/coupons failed, fallback to Supabase...', e);
+    }
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      if (data && data.length > 0) return data;
+      return [
+        {
+          id: 'october-free-seed',
+          code: 'OCTOBERFREE',
+          discount_type: 'free_delivery',
+          amount: 0,
+          min_order_amount: 20000,
+          expiry_date: '2026-10-31T23:59:59Z',
+          status: 'active',
+          is_active: true,
+          created_at: new Date().toISOString()
+        }
+      ];
+    } catch (err) {
+      console.error('Supabase fetch coupons failed:', err);
+      return [
+        {
+          id: 'october-free-seed',
+          code: 'OCTOBERFREE',
+          discount_type: 'free_delivery',
+          amount: 0,
+          min_order_amount: 20000,
+          expiry_date: '2026-10-31T23:59:59Z',
+          status: 'active',
+          is_active: true,
+          created_at: new Date().toISOString()
+        }
+      ];
+    }
+  }
+
+  async createAdminCoupon(data: {
+    code: string;
+    discount_type: 'fixed' | 'percentage' | 'free_delivery';
+    amount: number;
+    min_order_amount: number;
+    expiry_date?: string | null;
+  }) {
+    try {
+      return await this.request('/admin/coupons', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.warn('API create coupon failed, fallback to Supabase...', e);
+      const normalizedCode = data.code.trim().toUpperCase();
+      const payload = {
+        code: normalizedCode,
+        discount_type: data.discount_type,
+        amount: data.amount,
+        min_order_amount: data.min_order_amount,
+        expiry_date: data.expiry_date || null,
+        status: 'active',
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      const { data: res, error } = await supabase
+        .from('coupons')
+        .insert([payload])
+        .select()
+        .single();
+      if (error) throw error;
+      return { message: 'Coupon created', coupon: res };
+    }
+  }
+
+  async toggleAdminCoupon(id: string, is_active: boolean) {
+    try {
+      return await this.request(`/admin/coupons/${id}/toggle`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_active }),
+      });
+    } catch (e) {
+      console.warn('API toggle coupon failed, fallback to Supabase...', e);
+      const { error } = await supabase
+        .from('coupons')
+        .update({
+          is_active,
+          status: is_active ? 'active' : 'inactive'
+        })
+        .eq('id', id);
+      if (error) throw error;
+      return { message: 'Coupon updated' };
+    }
+  }
+
+  async deleteAdminCoupon(id: string) {
+    try {
+      return await this.request(`/admin/coupons/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.warn('API delete coupon failed, fallback to Supabase...', e);
+      const { error } = await supabase
+        .from('coupons')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { message: 'Coupon deleted' };
     }
   }
 }
