@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard, Store, PhoneCall, Home as HomeIcon, ShieldCheck, Leaf, Truck, HelpCircle, ChevronDown, MessageCircle, FileText } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard, Store, PhoneCall, Home as HomeIcon, ShieldCheck, Leaf, Truck, HelpCircle, ChevronDown, MessageCircle, FileText, Copy, Sparkles } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -111,19 +111,27 @@ const Header = () => {
 
   return (
     <div className="sticky top-0 z-50 w-full transition-all duration-300">
-      {/* Top Announcement Bar (Shows only at top of page) */}
+      {/* Top Announcement Bar (October Free Delivery Launch Campaign) */}
       {!scrolled && (
-        <div className="hidden md:block bg-primary/95 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-primary/20 animate-fade-in">
-          <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2 mx-auto md:mx-0">
-              <Leaf className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
+        <div className="bg-gradient-to-r from-emerald-950 via-primary to-emerald-900 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-emerald-400/20 shadow-xs">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 mx-auto md:mx-0 text-center sm:text-left">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 animate-pulse" />
               <span className="truncate">
-                100% Organic & Eco-Friendly Skincare | Fast Nigeria-Wide Shipping
+                🚀 <strong>OCTOBER LAUNCH SPECIAL:</strong> FREE Nationwide Delivery on orders over ₦20,000! Code: <code className="font-mono bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-black">OCTOBERFREE</code>
               </span>
-              <Truck className="w-3.5 h-3.5 text-emerald-100 shrink-0 hidden sm:inline" />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('OCTOBERFREE');
+                  alert('Coupon code OCTOBERFREE copied to clipboard!');
+                }}
+                className="hidden sm:inline-flex items-center gap-1 text-[11px] bg-white/15 hover:bg-white/25 px-2 py-0.5 rounded-full transition-colors font-bold text-white cursor-pointer"
+              >
+                <Copy className="w-3 h-3" /> Copy Code
+              </button>
             </div>
-            <div className="hidden md:flex items-center gap-4 text-[11px] font-medium opacity-90">
-              <Link to="/shipping" className="hover:underline flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-4 text-[11px] font-medium opacity-95">
+              <Link to="/shipping" className="hover:underline flex items-center gap-1 text-emerald-100">
                 <Truck className="w-3 h-3" /> Delivery Rates
               </Link>
               <span>•</span>

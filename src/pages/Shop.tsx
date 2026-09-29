@@ -3,13 +3,20 @@ import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, X, Leaf, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, X, Leaf, SlidersHorizontal, Copy, Sparkles, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText('OCTOBERFREE');
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 3000);
+  };
 
   const catalogProducts = products.filter((p) => p.id !== 'black-soap' && p.id !== 'kernel-oil');
 
@@ -51,7 +58,35 @@ const Shop = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 py-10 max-w-[1600px]">
+      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 py-8 max-w-[1600px]">
+        {/* October Free Delivery Launch Banner */}
+        <div className="mb-8 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-zinc-900 border border-emerald-500/30 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 shrink-0">
+              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold text-sm text-white">🚀 October Launch Offer: 100% FREE Delivery</span>
+                <Badge className="bg-emerald-500 text-white text-[10px] uppercase font-bold">Active</Badge>
+              </div>
+              <p className="text-xs text-emerald-100/90 leading-relaxed">
+                Free shipping nationwide on all orders equal to or over <strong>₦20,000</strong>. Enter promo code at checkout:
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-black/40 px-3.5 py-2 rounded-xl border border-emerald-500/40 w-full md:w-auto justify-between shrink-0">
+            <code className="font-mono text-sm font-black text-amber-300 tracking-wide">OCTOBERFREE</code>
+            <Button
+              size="sm"
+              onClick={handleCopyCode}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg px-2.5 py-1"
+            >
+              {copiedCode ? 'Copied! ✓' : <><Copy className="w-3 h-3 mr-1" /> Copy</>}
+            </Button>
+          </div>
+        </div>
+
         {/* Search & Filter Controls */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -134,7 +169,7 @@ const Shop = () => {
 
         {/* Products Grid */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
