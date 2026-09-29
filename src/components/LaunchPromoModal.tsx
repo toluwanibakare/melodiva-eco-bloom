@@ -81,18 +81,28 @@ export default function LaunchPromoModal({ open: externalOpen, onOpenChange }: L
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border border-[#E5DFD3] dark:border-[#2A3A31] bg-[#FAF8F5] dark:bg-[#0E1A14] text-[#1C201D] dark:text-[#F4EFE6] rounded-none shadow-2xl animate-in fade-in-50 duration-500">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border border-[#E5DFD3] dark:border-[#2A3A31] bg-[#FAF8F5] dark:bg-[#0E1A14] text-[#1C201D] dark:text-[#F4EFE6] rounded-none shadow-2xl animate-in fade-in-50 duration-500 relative">
+        {/* Low Opacity Background Image Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <img 
+            src="/products_set.jpeg" 
+            alt="Melodiva Products" 
+            className="w-full h-full object-cover opacity-15 dark:opacity-25 mix-blend-multiply dark:mix-blend-overlay filter contrast-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF8F5]/85 via-[#FAF8F5]/65 to-[#FAF8F5]/90 dark:from-[#0E1A14]/85 dark:via-[#0E1A14]/65 dark:to-[#0E1A14]/90" />
+        </div>
+
         {/* Subtle Decorative Top Line */}
-        <div className="h-1 w-full bg-[#133E2E] dark:bg-[#2A6E53]" />
+        <div className="h-1 w-full bg-[#133E2E] dark:bg-[#2A6E53] relative z-10" />
 
         {/* Modal Outer Container */}
-        <div className="p-8 sm:p-10 flex flex-col items-center text-center relative">
+        <div className="p-8 sm:p-10 flex flex-col items-center text-center relative z-10">
           
           {/* Top Brand Subhead */}
           <div className="flex items-center gap-2 mb-3">
             <Leaf className="w-3.5 h-3.5 text-[#133E2E] dark:text-[#3B9A76]" />
             <span className="text-[10px] tracking-[0.25em] font-semibold text-[#5A6E63] dark:text-[#A1B5A8] uppercase">
-              Melodiva Botanical House
+              Melodiva Skin Care
             </span>
           </div>
 
