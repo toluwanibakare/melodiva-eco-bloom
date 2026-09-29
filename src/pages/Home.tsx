@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
-import heroImg from '@/assets/hero-bg.png';
+import heroImg from '@/assets/hero-bg.jpg';
 import { Leaf, Star, Heart, Award, Truck, Gift, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Clock, Copy, Sparkles } from 'lucide-react';
 import melodivaLogo from "@/assets/logo-bold.jpg";
 import { useEffect, useState, useRef } from 'react';
