@@ -320,7 +320,7 @@ const Affiliate = () => {
                 Connect directly with our team, receive real-time program launch updates, and access marketing media assets.
               </p>
               <a
-                href="https://chat.whatsapp.com/GzF4MelodivaCommunity"
+                href="https://chat.whatsapp.com/HZcUsXKZ6d75MTXa5CjqCR"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all mt-2"

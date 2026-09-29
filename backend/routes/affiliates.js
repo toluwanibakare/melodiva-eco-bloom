@@ -29,7 +29,7 @@ router.post('/waitlist', async (req, res) => {
 
     res.status(201).json({
       message: 'Successfully joined the Melodiva Affiliate Waitlist!',
-      whatsapp_community_link: 'https://chat.whatsapp.com/GzF4MelodivaCommunity'
+      whatsapp_community_link: 'https://chat.whatsapp.com/HZcUsXKZ6d75MTXa5CjqCR'
     });
   } catch (error) {
     console.error('Affiliate waitlist error:', error);

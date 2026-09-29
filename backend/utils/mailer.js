@@ -3,35 +3,31 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// SMTP Transporter setup (connection details will be injected via .env)
+// SMTP Transporter setup for hello@melodivaproducts.com
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  host: process.env.SMTP_HOST || 'mail.melodivaproducts.com',
+  port: parseInt(process.env.SMTP_PORT || '465', 10),
+  secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true, // true for port 465 SSL
   auth: {
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
+    user: process.env.SMTP_USER || 'hello@melodivaproducts.com',
+    pass: process.env.SMTP_PASS || '9mpRJ9r7(LXnYVh&',
   },
 });
 
-const DEFAULT_FROM = process.env.EMAIL_FROM || '"Melodiva Skincare" <no-reply@melodivaskincare.com>';
-const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'melodivaproducts@gmail.com';
+const DEFAULT_FROM = process.env.EMAIL_FROM || '"Melodiva Skincare" <hello@melodivaproducts.com>';
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'hello@melodivaproducts.com';
 
 /**
- * Helper to safely send email without crashing main backend logic if SMTP credentials are missing/unconfigured.
+ * Helper to safely send email without crashing main backend logic if SMTP connection is missing/unconfigured.
  */
 async function sendMailSafe(mailOptions) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log(`[Mailer - Simulation] Email to ${mailOptions.to} subject "${mailOptions.subject}" logged. Configure SMTP credentials in .env to send real emails.`);
-    return { messageId: 'simulated-id-' + Date.now() };
-  }
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log(`[Mailer Success] Email sent to ${mailOptions.to} - ID: ${info.messageId}`);
     return info;
   } catch (error) {
     console.error(`[Mailer Error] Failed sending email to ${mailOptions.to}:`, error.message);
-    throw error;
+    return { messageId: 'error-logged-' + Date.now(), error: error.message };
   }
 }
 
@@ -66,7 +62,7 @@ export async function sendAffiliateWaitlistEmail({ full_name, email }) {
         <p>Thank you for expressing interest in joining the Melodiva Skincare Affiliate Program.</p>
         <p>We are currently onboarding our next batch of brand partners. As a waitlist member, you will receive priority notification as soon as registrations officially open!</p>
         <div style="margin: 25px 0; text-align: center;">
-          <a href="https://chat.whatsapp.com/GzF4MelodivaCommunity" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+          <a href="https://chat.whatsapp.com/HZcUsXKZ6d75MTXa5CjqCR" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
             Join Our WhatsApp VIP Community
           </a>
         </div>

@@ -29,6 +29,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import ShippingInfo from "./pages/ShippingInfo";
 import WhatsAppButton from "./components/ui/WhatsAppButton.tsx";
+import LaunchPromoModal from "./components/LaunchPromoModal";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +112,7 @@ const MainLayout = () => {
       </main>
       {!shouldHideFooter && <Footer />}
       <WhatsAppButton />
+      <LaunchPromoModal />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard, Store, PhoneCall, Home as HomeIcon, ShieldCheck, Leaf, Truck, HelpCircle, ChevronDown, MessageCircle, FileText, Copy, Sparkles } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, Package, LayoutDashboard, Store, PhoneCall, Home as HomeIcon, ShieldCheck, Leaf, Truck, HelpCircle, ChevronDown, MessageCircle, FileText, Copy, Gift } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -116,9 +116,9 @@ const Header = () => {
         <div className="bg-gradient-to-r from-emerald-950 via-primary to-emerald-900 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-emerald-400/20 shadow-xs">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 mx-auto md:mx-0 text-center sm:text-left">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 animate-pulse" />
+              <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0 font-bold" />
               <span className="truncate">
-                🚀 <strong>OCTOBER LAUNCH SPECIAL:</strong> FREE Nationwide Delivery on orders over ₦20,000! Code: <code className="font-mono bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-black">OCTOBERFREE</code>
+                <strong>OCTOBER LAUNCH SPECIAL:</strong> FREE Nationwide Delivery on orders over ₦20,000! Code: <code className="font-mono bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-black">OCTOBERFREE</code>
               </span>
               <button
                 onClick={() => {

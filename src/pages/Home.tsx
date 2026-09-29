@@ -102,47 +102,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* October Free Delivery Launch Campaign Banner */}
-      <section className="relative z-20 -mt-10 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-zinc-950 p-6 md:p-8 border-2 border-emerald-500/30 shadow-2xl overflow-hidden relative group">
-          <div className="absolute -right-10 -top-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="space-y-2 text-center md:text-left text-white max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black uppercase tracking-wider border border-emerald-400/30">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
-                <span>October Launch Special Offer</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                100% FREE Nationwide Delivery Throughout October! 🚀
-              </h2>
-              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-                Enjoy zero shipping fees across Nigeria on all orders above <strong className="text-amber-300 font-extrabold">₦20,000</strong>. Enter promo code at checkout:
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
-              <div className="flex items-center gap-2 bg-black/50 px-4 py-3 rounded-2xl border border-emerald-500/40 w-full sm:w-auto justify-between shadow-inner">
-                <span className="font-mono text-base font-black tracking-wider text-amber-300">OCTOBERFREE</span>
-                <Button
-                  size="sm"
-                  onClick={handleCopyCode}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl px-3 py-1.5 transition-all shadow-sm"
-                >
-                  {copiedCode ? 'Copied! ✓' : <><Copy className="w-3.5 h-3.5 mr-1" /> Copy Code</>}
-                </Button>
-              </div>
-              <Button asChild size="lg" className="btn-primary text-xs font-bold rounded-2xl px-6 py-6 w-full sm:w-auto shadow-lg hover:scale-105 transition-transform">
-                <Link to="/shop">
-                  <span>Shop Catalog</span>
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Natural Skin & Botanical Showcase */}
       <section className="py-20 bg-background relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1600px]">
