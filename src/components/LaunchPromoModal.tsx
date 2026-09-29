@@ -86,15 +86,6 @@ export default function LaunchPromoModal({ open: externalOpen, onOpenChange }: L
         
         {/* Inner Relative Container */}
         <div className="relative w-full h-full overflow-hidden">
-          
-          {/* Functional High-Z Close (X) Button */}
-          <button
-            onClick={() => handleOpenChange(false)}
-            aria-label="Close promotion dialog"
-            className="absolute right-3.5 top-3.5 z-30 p-2 rounded-full text-[#4A5A50] dark:text-[#A1B5A8] hover:text-[#0B1E16] dark:hover:text-[#FAF8F5] hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-[#D8D0C2] dark:hover:border-[#2F443A]"
-          >
-            <X className="w-4 h-4" />
-          </button>
 
           {/* Low Opacity Background Image Overlay */}
           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
