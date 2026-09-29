@@ -91,9 +91,9 @@ export default function LaunchPromoModal({ open: externalOpen, onOpenChange }: L
             <img 
               src={productsSetImg} 
               alt="Melodiva Products background" 
-              className="w-full h-full object-cover opacity-15 dark:opacity-20 filter contrast-105 saturate-90"
+              className="w-full h-full object-cover opacity-25 dark:opacity-30 filter contrast-105 saturate-90"
             />
-            <div className="absolute inset-0 bg-[#FAF8F5]/85 dark:bg-[#0E1A14]/85 bg-gradient-to-b from-[#FAF8F5]/80 via-[#FAF8F5]/65 to-[#FAF8F5]/90 dark:from-[#0E1A14]/80 dark:via-[#0E1A14]/65 dark:to-[#0E1A14]/90" />
+            <div className="absolute inset-0 bg-[#FAF8F5]/80 dark:bg-[#0E1A14]/80 bg-gradient-to-b from-[#FAF8F5]/75 via-[#FAF8F5]/60 to-[#FAF8F5]/85 dark:from-[#0E1A14]/75 dark:via-[#0E1A14]/60 dark:to-[#0E1A14]/85" />
           </div>
 
           {/* Subtle Decorative Top Line */}
