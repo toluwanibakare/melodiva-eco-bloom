@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || 'hello@melodivaproducts.com',
     pass: process.env.SMTP_PASS || '9mpRJ9r7(LXnYVh&',
   },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 const DEFAULT_FROM = process.env.EMAIL_FROM || '"Melodiva Skincare" <hello@melodivaproducts.com>';
