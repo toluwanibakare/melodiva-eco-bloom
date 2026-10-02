@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Plus, Save } from "lucide-react";
 import { nigeriaStates } from "@/data/nigeriaLocations";
+import SEO from "@/components/SEO";
 
 type Row = {
   id?: string;
@@ -148,6 +149,11 @@ export default function Pricing() {
 
   return (
     <section className="py-16 px-6 md:px-16 bg-background min-h-screen">
+      <SEO 
+        title="Product Pricing & Bundle Offers"
+        description="View official Melodiva Skin Care product pricing, size variants, and delivery rates across Nigeria."
+        canonical="/pricing"
+      />
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-foreground mb-2">
           Delivery Pricing

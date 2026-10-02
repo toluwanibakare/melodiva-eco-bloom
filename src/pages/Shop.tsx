@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, X, Leaf, SlidersHorizontal, Copy, Sparkles, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import SEO from '@/components/SEO';
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,6 +43,12 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Shop Natural Black Soap & Pure Kernel Oil Catalog" 
+        description="Browse authentic 100% natural African black soap variants and cold-pressed palm kernel oil by Melodiva Skin Care. Order online for nationwide delivery across Nigeria."
+        canonical="/shop"
+        keywords="Shop black soap Nigeria, buy palm kernel oil online, Melodiva product catalog, natural skincare store Lagos Abuja"
+      />
       {/* Header Banner */}
       <div className="bg-secondary/30 border-b border-border/50 py-12 px-4 hero-glow">
         <div className="container mx-auto text-center max-w-3xl space-y-3">

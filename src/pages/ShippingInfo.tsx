@@ -1,10 +1,16 @@
 import { Truck, MapPin, Clock, ShieldCheck, Phone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const ShippingInfo = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <SEO 
+        title="Nationwide Shipping & Delivery Rates across Nigeria"
+        description="Learn about Melodiva Skin Care delivery options, rates, and shipping schedules across all 36 states in Nigeria. Free shipping available on orders over ₦20,000."
+        canonical="/shipping"
+      />
       <div className="text-center mb-12 animate-fade-in">
         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
           <Truck className="h-8 w-8 text-primary" />

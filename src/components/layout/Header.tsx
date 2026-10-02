@@ -63,15 +63,18 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
+    // Sequential on purpose (see apiGate): parallel bursts get 503s on
+    // entry-process-capped shared hosting.
     if (user) {
       api.getProfile()
         .then((data) => setProfile(data))
-        .catch(() => setProfile(null));
-
-      api
-        .checkAffiliate()
-        .then((res) => setIsAffiliate(res.isAffiliate))
-        .catch(() => setIsAffiliate(false));
+        .catch(() => setProfile(null))
+        .finally(() => {
+          api
+            .checkAffiliate()
+            .then((res) => setIsAffiliate(res.isAffiliate))
+            .catch(() => setIsAffiliate(false));
+        });
     } else {
       setProfile(null);
       setIsAffiliate(false);
@@ -115,9 +118,9 @@ const Header = () => {
       {!scrolled && (
         <div className="bg-gradient-to-r from-emerald-950 via-primary to-emerald-900 text-primary-foreground py-1.5 px-4 text-xs font-semibold tracking-wide transition-all duration-300 border-b border-emerald-400/20 shadow-xs">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 mx-auto md:mx-0 text-center sm:text-left">
+            <div className="flex items-center gap-2 mx-auto md:mx-0 text-center sm:text-left min-w-0">
               <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0 font-bold" />
-              <span className="truncate">
+              <span className="leading-relaxed">
                 <strong>OCTOBER LAUNCH SPECIAL:</strong> FREE Nationwide Delivery on orders over ₦20,000! Code: <code className="font-mono bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-black">OCTOBERFREE</code>
               </span>
               <button
@@ -157,15 +160,15 @@ const Header = () => {
         >
           <div className="flex items-center justify-between">
             {/* Logo Section */}
-            <Link to="/" className="flex items-center space-x-2.5 group shrink-0">
+            <Link to="/" className="flex items-center space-x-2 group shrink-0 min-w-0">
               <img
                 src={melodivaLogo}
                 alt="Melodiva Logo"
-                className="h-10 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                className="h-9 min-[420px]:h-10 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
               />
-              <span className="text-lg md:text-xl font-black tracking-tight text-foreground flex items-center gap-1.5 whitespace-nowrap">
+              <span className="text-base min-[420px]:text-lg md:text-xl font-black tracking-tight text-foreground flex items-center gap-1.5 whitespace-nowrap">
                 <span className="font-black">Melodiva</span>
-                <span className="text-primary font-black">Skin Care</span>
+                <span className="text-primary font-black hidden min-[420px]:inline">Skin Care</span>
               </span>
             </Link>
 
@@ -206,12 +209,12 @@ const Header = () => {
             </nav>
 
             {/* User Controls & Cart */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
               {/* Cart Button */}
               <Link to="/cart">
                 <Button
                   variant="ghost"
-                  className={`relative rounded-full h-10 px-4 bg-secondary/70 hover:bg-primary/15 transition-all border border-border/60 flex items-center gap-2 ${
+                  className={`relative rounded-full h-10 px-3 sm:px-4 bg-secondary/70 hover:bg-primary/15 transition-all border border-border/60 flex items-center gap-2 ${
                     cartCount > 0 ? 'border-primary/40 bg-primary/5' : ''
                   }`}
                 >
@@ -303,7 +306,7 @@ const Header = () => {
                     <Menu className="h-5 w-5 text-foreground" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[310px] sm:w-[340px] rounded-l-3xl p-5 sm:p-6 pb-10 sm:pb-12 bg-card/95 backdrop-blur-2xl border-border flex flex-col justify-between overflow-y-auto max-h-screen">
+                <SheetContent side="right" className="w-[310px] max-w-[88vw] sm:w-[340px] rounded-l-3xl p-5 sm:p-6 pb-10 sm:pb-12 bg-card/95 backdrop-blur-2xl border-border flex flex-col justify-between overflow-y-auto max-h-screen">
                   <div>
                     <SheetHeader className="text-left pb-4 border-b border-border">
                       <SheetTitle className="flex items-center gap-2">

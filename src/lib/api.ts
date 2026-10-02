@@ -2,6 +2,33 @@ import { supabase } from './supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// App-wide concurrency gate. Shared hosting caps simultaneous PHP hits
+// (entry processes); the browser fires its own preflight alongside each
+// request, so cap API calls at 2 and let the rest queue instead of
+// bursting and getting 503s that surface as CORS errors.
+class RequestGate {
+  private active = 0;
+  private waiting: Array<() => void> = [];
+
+  constructor(private max: number = 2) {}
+
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.active >= this.max) {
+      await new Promise<void>((resolve) => this.waiting.push(resolve));
+    }
+    this.active++;
+    try {
+      return await fn();
+    } finally {
+      this.active--;
+      const next = this.waiting.shift();
+      if (next) next();
+    }
+  }
+}
+
+const apiGate = new RequestGate(2);
+
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
@@ -17,30 +44,64 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
+    // Shared cPanel hosting caps concurrent PHP requests (entry processes).
+    // When the cap is hit, LiteSpeed answers 503 with no CORS headers, which
+    // surfaces as a network TypeError. GETs are idempotent, so retry them
+    // with backoff; never auto-retry mutations (would duplicate orders/charges).
+    const method = (options.method || 'GET').toUpperCase();
+    const retryable = method === 'GET';
+    const maxAttempts = retryable ? 3 : 1;
+
+    const execute = async (): Promise<T> => {
+      let lastError: any = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        };
+
+        // Add auth token if available
+        if (this.token) {
+          headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const response = await fetch(url, {
+          ...options,
+          headers,
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: response.statusText }));
+          const errorMessage = error.error || `HTTP error! status: ${response.status}`;
+          const httpError = new Error(errorMessage) as any;
+          httpError.status = response.status;
+          if (retryable && [502, 503, 504, 429].includes(response.status) && attempt < maxAttempts) {
+            lastError = httpError;
+            await new Promise((r) => setTimeout(r, 400 * attempt));
+            continue;
+          }
+          throw httpError;
+        }
+
+        return response.json();
+      } catch (err: any) {
+        // Network-level failure (no HTTP status: DNS, timeout, or a
+        // CORS-stripped 503 page) — retry GETs, fail anything else.
+        if (retryable && err?.status === undefined && attempt < maxAttempts) {
+          lastError = err;
+          await new Promise((r) => setTimeout(r, 400 * attempt));
+          continue;
+        }
+        throw err;
+        }
+      }
+
+      throw lastError;
     };
 
-    // Add auth token if available
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: response.statusText }));
-      const errorMessage = error.error || `HTTP error! status: ${response.status}`;
-      const httpError = new Error(errorMessage) as any;
-      httpError.status = response.status;
-      throw httpError;
-    }
-
-    return response.json();
+    return apiGate.run(execute);
   }
 
   setToken(token: string | null) {
@@ -257,6 +318,17 @@ class ApiClient {
 
   async getOrderHistory(orderId: string) {
     return await this.request(`/orders/${encodeURIComponent(orderId)}/history`);
+  }
+
+  async verifyPayment(reference: string) {
+    return await this.request<{
+      verified: boolean;
+      status: 'paid' | 'failed';
+      amount: number | null;
+      currency: string | null;
+      reference: string;
+      gateway_response?: string | null;
+    }>(`/orders/verify-payment/${encodeURIComponent(reference)}`);
   }
 
   // Affiliate methods

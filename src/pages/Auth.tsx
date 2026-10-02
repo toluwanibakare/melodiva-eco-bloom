@@ -4,6 +4,7 @@ import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -235,9 +236,8 @@ export default function Auth() {
               </div>
               <div>
                 <Label htmlFor="signin-password">Password</Label>
-                <Input
+                <PasswordInput
                   id="signin-password"
-                  type="password"
                   placeholder="••••••••"
                   value={signInData.password}
                   onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
@@ -310,9 +310,8 @@ export default function Auth() {
                     </div>
                     <div>
                       <Label htmlFor="forgot-new-password">New Password</Label>
-                      <Input
+                      <PasswordInput
                         id="forgot-new-password"
-                        type="password"
                         value={forgotPasswordData.newPassword}
                         onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, newPassword: e.target.value })}
                         required
@@ -320,9 +319,8 @@ export default function Auth() {
                     </div>
                     <div>
                       <Label htmlFor="forgot-confirm-password">Confirm New Password</Label>
-                      <Input
+                      <PasswordInput
                         id="forgot-confirm-password"
-                        type="password"
                         value={forgotPasswordData.confirmPassword}
                         onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, confirmPassword: e.target.value })}
                         required
@@ -479,9 +477,8 @@ export default function Auth() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="password">Password *</Label>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     placeholder="••••••••"
                     value={signUpData.password}
                     onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
@@ -490,9 +487,8 @@ export default function Auth() {
                 </div>
                 <div>
                   <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <Input
+                  <PasswordInput
                     id="confirmPassword"
-                    type="password"
                     placeholder="••••••••"
                     value={signUpData.confirmPassword}
                     onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}

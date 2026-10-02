@@ -10,6 +10,7 @@ import { Mail, MapPin, Instagram } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { api } from "@/lib/api";
 import FAQSection from "@/components/FAQSection";
+import SEO from "@/components/SEO";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -81,6 +82,11 @@ export default function ContactPage() {
 
   return (
     <section className="py-16 px-4 sm:px-6 md:px-10 lg:px-12 bg-background min-h-screen">
+      <SEO 
+        title="Contact Us & Customer Support"
+        description="Get in touch with Melodiva Skin Care support. Contact us via email hello@melodivaproducts.com or WhatsApp for order inquiries, wholesale, and partnership."
+        canonical="/contact"
+      />
       <div className="max-w-[1600px] mx-auto space-y-12">
         <div>
           <h1 className="text-4xl font-bold text-center text-foreground mb-4">

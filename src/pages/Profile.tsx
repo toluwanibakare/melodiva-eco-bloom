@@ -4,6 +4,7 @@ import { api, auth } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -182,9 +183,8 @@ export default function Profile() {
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
                 <Label htmlFor="oldPassword">Old Password</Label>
-                <Input
+                <PasswordInput
                   id="oldPassword"
-                  type="password"
                   value={passwordData.oldPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
                   required
@@ -192,9 +192,8 @@ export default function Profile() {
               </div>
               <div>
                 <Label htmlFor="newPassword">New Password</Label>
-                <Input
+                <PasswordInput
                   id="newPassword"
-                  type="password"
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
@@ -202,9 +201,8 @@ export default function Profile() {
               </div>
               <div>
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type="password"
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   required

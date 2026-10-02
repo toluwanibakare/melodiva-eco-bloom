@@ -7,8 +7,8 @@ import heroImg from '@/assets/hero-bg.jpg';
 import { Leaf, Star, Heart, Award, Truck, Gift, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Clock, Copy, Sparkles } from 'lucide-react';
 import melodivaLogo from "@/assets/logo-bold.jpg";
 import { useEffect, useState, useRef } from 'react';
-import { api, auth } from '@/lib/api';
 import FAQSection from '@/components/FAQSection';
+import SEO from '@/components/SEO';
 
 const Home = () => {
   const [isAffiliate, setIsAffiliate] = useState(false);
@@ -54,6 +54,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Authentic Nigerian Black Soap & Pure Kernel Oil" 
+        canonical="/"
+      />
       {/* Hero Section */}
       <section className="relative h-[680px] md:h-[760px] flex items-center justify-center overflow-hidden natural-glow-bg">
         <div

@@ -288,6 +288,20 @@ const Checkout = () => {
         throw new Error(`Payment failed with status: ${response.status}`);
       }
 
+      // Server-side Paystack verification — Paystack is the source of truth
+      // for payment status. Fail closed: no verification, no order.
+      const verification = await api.verifyPayment(response.reference);
+      const paidAmount = verification.amount ?? 0;
+      const isPaid =
+        verification.verified &&
+        verification.status === 'paid' &&
+        paidAmount >= paymentDetails.total;
+      const paymentStatus = isPaid ? 'paid' : 'failed';
+
+      if (!isPaid) {
+        console.warn('Paystack verification did not confirm payment:', verification);
+      }
+
       // Generate order number
       orderNumber = generateOrderNumber();
 
@@ -324,13 +338,22 @@ const Checkout = () => {
         phone_number: phoneNumber,
         whatsapp_number: whatsappNumber,
         payment_reference: response.reference,
-        payment_status: "paid",
-        status: "processing",
+        payment_status: paymentStatus,
+        status: isPaid ? "processing" : "cancelled",
       });
 
       orderId = orderData.order.id;
       orderNumber = orderData.order.order_number;
       console.log("Order saved successfully:", orderData);
+
+      if (!isPaid) {
+        toast({
+          title: "Payment Not Confirmed",
+          description: `Paystack did not confirm payment for order #${orderNumber}. It was recorded as failed — no money was taken. Please try again or contact support.`,
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Clear cart after successful order
       clearCart();

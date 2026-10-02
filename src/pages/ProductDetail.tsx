@@ -8,8 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ShoppingCart, Minus, Plus, ArrowLeft, ShieldCheck, Truck, CheckCircle2 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
-import { SoapVariant } from '@/types/product';
-import { Badge } from '@/components/ui/badge';
+import SEO from '@/components/SEO';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -89,8 +88,42 @@ const ProductDetail = () => {
     toast.success(`${product.name} (${selectedSize}) added to your cart!`);
   };
 
+  const currentPrice = getPrice();
+  const productSchema = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    'name': product.name,
+    'description': product.description,
+    'image': product.image ? `https://melodivaproducts.com${product.image}` : 'https://melodivaproducts.com/og-image.jpg',
+    'brand': {
+      '@type': 'Brand',
+      'name': 'Melodiva Skin Care',
+    },
+    'offers': {
+      '@type': 'Offer',
+      'url': `https://melodivaproducts.com/product/${product.id}`,
+      'priceCurrency': 'NGN',
+      'price': currentPrice,
+      'availability': 'https://schema.org/InStock',
+      'seller': {
+        '@type': 'Organization',
+        'name': 'Melodiva Skin Care',
+      },
+    },
+  } : undefined;
+
   return (
     <div className="min-h-screen bg-background py-10">
+      {product && (
+        <SEO 
+          title={product.name}
+          description={product.description}
+          canonical={`/product/${product.id}`}
+          ogImage={product.image || '/og-image.jpg'}
+          ogType="product"
+          schema={productSchema}
+        />
+      )}
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Back button */}
         <div className="mb-6">

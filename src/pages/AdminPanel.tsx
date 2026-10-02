@@ -170,7 +170,6 @@ interface ProductRow {
 type OrderUpdateState = {
   status: string;
   note: string;
-  payment_status?: string;
 };
 
 const ORDER_STATUSES = [
@@ -180,8 +179,6 @@ const ORDER_STATUSES = [
   "delivered",
   "cancelled",
 ];
-
-const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"];
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -229,6 +226,19 @@ export default function AdminPanel() {
   });
   const [productError, setProductError] = useState<string | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  // Generic per-action busy flag so every backend button shows progress
+  // and can't be double-clicked (keys like `wd-<id>-paid`).
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const withBusy = async <T,>(key: string, fn: () => Promise<T>): Promise<T | undefined> => {
+    if (busyKey) return undefined;
+    setBusyKey(key);
+    try {
+      return await fn();
+    } finally {
+      setBusyKey(null);
+    }
+  };
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [adminProfile, setAdminProfile] = useState<any>(null);
 
@@ -281,20 +291,47 @@ export default function AdminPanel() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await auth.getSession();
-      const email = session?.user.email?.toLowerCase() ?? null;
-      setSessionEmail(email);
-
-      if (session) {
-        api.getProfile()
-          .then(p => setAdminProfile(p))
-          .catch(() => setAdminProfile(null));
-      }
-
-      if (!session) {
+      // No token stored at all -> definitely logged out.
+      if (!api.getToken()) {
         navigate("/auth");
         return;
       }
+
+      // Session check with retries. getSession() clears the stored token on
+      // a real 401, so: token gone = logged out (bounce to login); token
+      // still there = transient network/throttle failure (STAY, don't log out).
+      let session: any = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await auth.getSession();
+          session = res.data.session;
+        } catch {
+          session = null;
+        }
+        if (session || api.getToken() === null) break;
+        await new Promise((r) => setTimeout(r, 600 * attempt));
+      }
+
+      if (!session) {
+        if (api.getToken() === null) {
+          navigate("/auth");
+          return;
+        }
+        toast({
+          title: "Connection trouble",
+          description: "Server is slow to respond. Your login is safe — press Refresh to retry.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const email = session?.user.email?.toLowerCase() ?? null;
+      setSessionEmail(email);
+
+      api.getProfile()
+        .then(p => setAdminProfile(p))
+        .catch(() => setAdminProfile(null));
 
       const allowAll = adminEmails.length === 0;
       const isAdmin = allowAll || (email && adminEmails.includes(email));
@@ -386,45 +423,55 @@ export default function AdminPanel() {
     }
   };
 
-  const handleToggleCoupon = async (id: string, currentActiveState: boolean) => {
-    try {
-      await api.toggleAdminCoupon(id, !currentActiveState);
-      toast({
-        title: !currentActiveState ? "Coupon Activated" : "Coupon Deactivated",
-        description: "Status updated successfully."
-      });
-      setCoupons(prev => prev.map(c => c.id === id ? { ...c, is_active: !currentActiveState, status: !currentActiveState ? 'active' : 'inactive' } : c));
-    } catch {
-      toast({ title: "Error", description: "Failed to update coupon status.", variant: "destructive" });
-    }
-  };
+  const handleToggleCoupon = (id: string, currentActiveState: boolean) =>
+    withBusy(`ct-${id}`, async () => {
+      try {
+        await api.toggleAdminCoupon(id, !currentActiveState);
+        toast({
+          title: !currentActiveState ? "Coupon Activated" : "Coupon Deactivated",
+          description: "Status updated successfully."
+        });
+        setCoupons(prev => prev.map(c => c.id === id ? { ...c, is_active: !currentActiveState, status: !currentActiveState ? 'active' : 'inactive' } : c));
+      } catch {
+        toast({ title: "Error", description: "Failed to update coupon status.", variant: "destructive" });
+      }
+    });
 
-  const handleDeleteCoupon = async (id: string) => {
+  const handleDeleteCoupon = (id: string) => {
     if (!confirm("Are you sure you want to delete this coupon code?")) return;
-    try {
-      await api.deleteAdminCoupon(id);
-      toast({ title: "Coupon Deleted", description: "The coupon code was removed." });
-      setCoupons(prev => prev.filter(c => c.id !== id));
-    } catch {
-      toast({ title: "Error", description: "Failed to delete coupon.", variant: "destructive" });
-    }
+    return withBusy(`cd-${id}`, async () => {
+      try {
+        await api.deleteAdminCoupon(id);
+        toast({ title: "Coupon Deleted", description: "The coupon code was removed." });
+        setCoupons(prev => prev.filter(c => c.id !== id));
+      } catch {
+        toast({ title: "Error", description: "Failed to delete coupon.", variant: "destructive" });
+      }
+    });
   };
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersData, profilesData, historyData, productsData, affiliatesData, withdrawalsData, messagesData, issuesData, couponsData] =
-        await Promise.all([
-          api.getAdminOrders(),
-          api.getAdminProfiles(),
-          api.getAdminOrderHistory(),
-          api.getAdminProducts().catch(() => []),
-          api.getAdminAffiliates().catch(() => []),
-          api.getAdminWithdrawals().catch(() => []),
-          api.getAdminContactMessages().catch(() => []),
-          api.getAdminOrderIssues().catch(() => []),
-          api.getAdminCoupons().catch(() => [])
-        ]);
+      // NOTE: fetched sequentially (not Promise.all) on purpose — shared
+      // cPanel hosting caps concurrent PHP requests, and 9 parallel calls
+      // get rejected with 503s that surface as CORS errors in the browser.
+      const safe = async <T,>(p: Promise<T>, fallback: T): Promise<T> => {
+        try {
+          return await p;
+        } catch {
+          return fallback;
+        }
+      };
+      const ordersData = await api.getAdminOrders();
+      const profilesData = await api.getAdminProfiles();
+      const historyData = await api.getAdminOrderHistory();
+      const productsData = await safe(api.getAdminProducts(), []);
+      const affiliatesData = await safe(api.getAdminAffiliates(), []);
+      const withdrawalsData = await safe(api.getAdminWithdrawals(), []);
+      const messagesData = await safe(api.getAdminContactMessages(), []);
+      const issuesData = await safe(api.getAdminOrderIssues(), []);
+      const couponsData = await safe(api.getAdminCoupons(), []);
 
       setOrders(Array.isArray(ordersData) ? ordersData : []);
       setProfiles(Array.isArray(profilesData) ? profilesData : []);
@@ -471,7 +518,6 @@ export default function AdminPanel() {
       [orderId]: {
         status: prev[orderId]?.status ?? "processing",
         note: prev[orderId]?.note ?? "",
-        payment_status: prev[orderId]?.payment_status ?? "pending",
         [key]: value,
       },
     }));
@@ -486,16 +532,22 @@ export default function AdminPanel() {
       });
       return;
     }
+    if (updatingOrderId) return;
 
+    setUpdatingOrderId(orderId);
     try {
-      const { status, note, payment_status } = update;
-      await api.updateOrder(orderId, {
+      const { status, note } = update;
+      const res: any = await api.updateOrder(orderId, {
         status,
-        payment_status,
         note: note || `Updated by ${sessionEmail ?? "admin"}`
       });
 
-      toast({ title: "Order status updated successfully!" });
+      toast({
+        title: "Order status updated successfully!",
+        description: res?.email_sent
+          ? "Customer has been notified by email."
+          : "Saved. Note: customer email could not be sent — check mail logs.",
+      });
       await fetchData();
     } catch (error: any) {
       toast({
@@ -503,6 +555,8 @@ export default function AdminPanel() {
         description: error.message ?? "Could not update order.",
         variant: "destructive",
       });
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -557,63 +611,122 @@ export default function AdminPanel() {
     setProductFormOpen(true);
   };
 
-  const deleteProduct = async (id?: string) => {
+  const deleteProduct = (id?: string) => {
     if (!id) return;
     if (!confirm("Are you sure you want to delete this product?")) return;
-    try {
-      await api.deleteProduct(id);
-      toast({ title: "Product removed" });
-      await fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Delete failed",
-        description: error.message ?? "Could not delete product.",
-        variant: "destructive",
-      });
-    }
+    return withBusy(`pd-${id}`, async () => {
+      try {
+        await api.deleteProduct(id);
+        toast({ title: "Product removed" });
+        await fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Delete failed",
+          description: error.message ?? "Could not delete product.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
-  const updateWithdrawal = async (id: string, status: string) => {
-    try {
-      await api.updateWithdrawalStatus(id, status);
-      toast({ title: `Withdrawal request ${status}` });
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update withdrawal",
-        variant: "destructive"
-      });
-    }
+  const updateWithdrawal = (id: string, status: string) =>
+    withBusy(`wd-${id}-${status}`, async () => {
+      try {
+        await api.updateWithdrawalStatus(id, status);
+        toast({ title: `Withdrawal request ${status}` });
+        fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update withdrawal",
+          variant: "destructive"
+        });
+      }
+    });
+
+  const toggleAffiliateStatus = (id: string, currentStatus: boolean) =>
+    withBusy(`af-${id}`, async () => {
+      try {
+        await api.updateAffiliate(id, { is_active: !currentStatus });
+        toast({ title: `Affiliate ${!currentStatus ? 'activated' : 'suspended'}` });
+        fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update status",
+          variant: "destructive"
+        });
+      }
+    });
+
+  const sendReply = () => {
+    if (!selectedMessage || !replyText.trim()) return;
+    return withBusy("reply-send", async () => {
+      try {
+        await api.replyContactMessage(selectedMessage.id, replyText);
+        setContactMessages(prev => prev.map(m => m.id === selectedMessage.id ? { ...m, status: 'replied', reply: replyText } : m));
+        toast({
+          title: "Reply saved & sent!",
+          description: `Response updated for ${selectedMessage.email}`,
+        });
+        setReplyDialogOpen(false);
+        setReplyText("");
+        setSelectedMessage(null);
+      } catch (err: any) {
+        toast({
+          title: "Error saving reply",
+          description: err.message || "Could not save reply to database.",
+          variant: "destructive"
+        });
+      }
+    });
   };
 
-  const toggleAffiliateStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      await api.updateAffiliate(id, { is_active: !currentStatus });
-      toast({ title: `Affiliate ${!currentStatus ? 'activated' : 'suspended'}` });
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update status",
-        variant: "destructive"
-      });
-    }
+  const saveIssueUpdate = () => {
+    if (!selectedIssue) return;
+    return withBusy("issue-save", async () => {
+      try {
+        await api.updateOrderIssue(selectedIssue.id, {
+          status: issueStatusText,
+          admin_reply: issueReplyText,
+        });
+        setOrderIssues(prev =>
+          prev.map(i =>
+            i.id === selectedIssue.id
+              ? { ...i, status: issueStatusText, admin_reply: issueReplyText }
+              : i
+          )
+        );
+        toast({
+          title: "Issue Updated",
+          description: `Order #${selectedIssue.order_number} issue status updated to ${issueStatusText}.`,
+        });
+        setIssueDialogOpen(false);
+        setSelectedIssue(null);
+      } catch (err: any) {
+        toast({
+          title: "Update Failed",
+          description: err.message || "Failed to update order issue.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
-  const updateAffiliateCommission = async (id: string, rate: number) => {
-    try {
-      await api.updateAffiliate(id, { commission_rate: rate });
-      toast({ title: "Commission rate updated" });
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update commission",
-        variant: "destructive"
-      });
-    }
-  };
+  const updateAffiliateCommission = (id: string, rate: number) =>
+    withBusy(`af-rate-${id}`, async () => {
+      try {
+        await api.updateAffiliate(id, { commission_rate: rate });
+        toast({ title: "Commission rate updated" });
+        fetchData();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update commission",
+          variant: "destructive"
+        });
+      }
+    });
 
   const formatPrice = (price: number | null) =>
     new Intl.NumberFormat("en-NG", {
@@ -623,10 +736,12 @@ export default function AdminPanel() {
     }).format(Number(price ?? 0));
 
   // Analytics Metrics
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
-  const pendingOrdersCount = orders.filter((o) => o.status === "processing" || o.status === "pending").length;
-  const shippedOrdersCount = orders.filter((o) => o.status === "shipped").length;
-  const deliveredOrdersCount = orders.filter((o) => o.status === "delivered").length;
+  // Failed-payment orders are dead records: never counted in revenue or stats.
+  const countableOrders = orders.filter((o) => o.payment_status !== "failed");
+  const totalRevenue = countableOrders.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
+  const pendingOrdersCount = countableOrders.filter((o) => o.status === "processing" || o.status === "pending").length;
+  const shippedOrdersCount = countableOrders.filter((o) => o.status === "shipped").length;
+  const deliveredOrdersCount = countableOrders.filter((o) => o.status === "delivered").length;
 
   const revenueData = useMemo(() => {
     const data: Record<string, number> = {};
@@ -713,8 +828,8 @@ export default function AdminPanel() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-zinc-950 font-sans overflow-hidden">
       {/* Top Admin Header Bar */}
-      <header className="sticky top-0 z-40 bg-card/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-border px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 bg-card/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-border px-3 sm:px-4 lg:px-8 py-3 flex items-center justify-between gap-2 shadow-sm shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Mobile Sheet Drawer Trigger */}
           <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
             <SheetTrigger asChild className="lg:hidden">
@@ -722,7 +837,7 @@ export default function AdminPanel() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-4 bg-card border-border flex flex-col justify-between">
+            <SheetContent side="left" className="w-[280px] max-w-[85vw] p-4 bg-card border-border flex flex-col justify-between">
               <div>
                 <SheetHeader className="text-left pb-4 border-b border-border">
                   <SheetTitle className="flex items-center gap-2">
@@ -778,13 +893,13 @@ export default function AdminPanel() {
           </Sheet>
 
           {/* Admin Logo & Title */}
-          <div className="flex items-center gap-2.5">
-            <img src={melodivaLogo} alt="Melodiva Logo" className="h-8 w-auto object-contain" />
-            <div className="hidden sm:flex flex-col">
-              <span className="font-black text-sm tracking-tight text-foreground flex items-center gap-1.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <img src={melodivaLogo} alt="Melodiva Logo" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
+            <div className="hidden sm:flex flex-col min-w-0">
+              <span className="font-black text-sm tracking-tight text-foreground flex items-center gap-1.5 whitespace-nowrap">
                 <span>Melodiva</span>
                 <span className="text-primary">Skin Care</span>
-                <Badge className="ml-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] uppercase font-extrabold py-0">
+                <Badge className="ml-1 hidden lg:inline-flex bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] uppercase font-extrabold py-0">
                   Admin Workspace
                 </Badge>
               </span>
@@ -793,7 +908,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Middle Search Input */}
-        <div className="hidden md:flex items-center relative max-w-md w-full mx-4">
+        <div className="hidden md:flex items-center relative min-w-0 shrink w-full max-w-[180px] md:max-w-xs lg:max-w-md mx-2 lg:mx-4">
           <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
           <Input
             placeholder="Search orders, customers, products..."
@@ -804,8 +919,8 @@ export default function AdminPanel() {
         </div>
 
         {/* Right Admin Controls */}
-        <div className="flex items-center gap-2.5">
-          <Button variant="outline" size="sm" onClick={fetchData} className="rounded-full text-xs h-9 px-3 gap-1.5 font-bold">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <Button variant="outline" size="sm" onClick={fetchData} className="rounded-full text-xs h-9 px-2.5 sm:px-3 gap-1.5 font-bold">
             <RefreshCw className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
@@ -1047,10 +1162,10 @@ export default function AdminPanel() {
                     </TableHeader>
                     <TableBody>
                       {filteredOrders.map((order) => {
+                        const isPaymentFailed = order.payment_status === "failed";
                         const update = orderUpdates[order.id] ?? {
                           status: order.status,
                           note: "",
-                          payment_status: order.payment_status,
                         };
 
                         return (
@@ -1077,6 +1192,7 @@ export default function AdminPanel() {
                               <Select
                                 value={update.status}
                                 onValueChange={(value) => handleOrderUpdateChange(order.id, "status", value)}
+                                disabled={isPaymentFailed}
                               >
                                 <SelectTrigger className="h-8 text-xs font-bold w-32 rounded-xl">
                                   <SelectValue placeholder="Status" />
@@ -1089,24 +1205,25 @@ export default function AdminPanel() {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              {isPaymentFailed && (
+                                <p className="text-[10px] text-destructive font-bold mt-1">Locked — payment failed</p>
+                              )}
                             </TableCell>
 
                             <TableCell className="text-xs">
-                              <Select
-                                value={update.payment_status}
-                                onValueChange={(value) => handleOrderUpdateChange(order.id, "payment_status", value)}
+                              <Badge
+                                variant="outline"
+                                className={`text-[11px] font-extrabold capitalize ${
+                                  order.payment_status === "paid"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                    : order.payment_status === "failed"
+                                      ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30"
+                                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                                }`}
                               >
-                                <SelectTrigger className="h-8 text-xs font-bold w-28 rounded-xl">
-                                  <SelectValue placeholder="Payment" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {PAYMENT_STATUSES.map((pst) => (
-                                    <SelectItem key={pst} value={pst} className="text-xs font-medium capitalize">
-                                      {pst}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                {order.payment_status === "paid" ? "Paid ✓" : order.payment_status === "failed" ? "Failed" : order.payment_status}
+                              </Badge>
+                              <p className="text-[10px] text-muted-foreground mt-1">via Paystack</p>
                             </TableCell>
 
                             <TableCell className="font-extrabold text-xs text-foreground">
@@ -1121,8 +1238,12 @@ export default function AdminPanel() {
                                 className="text-xs min-h-[36px] h-9 py-1.5 rounded-xl border-border resize-none"
                               />
                               <div className="flex items-center gap-2">
-                                <Button size="sm" onClick={() => updateOrder(order.id)} className="h-7 text-[11px] font-bold rounded-lg px-3">
-                                  Update Order
+                                <Button size="sm" onClick={() => updateOrder(order.id)} disabled={isPaymentFailed || updatingOrderId === order.id} className="h-7 text-[11px] font-bold rounded-lg px-3">
+                                  {updatingOrderId === order.id ? (
+                                    <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Updating…</>
+                                  ) : (
+                                    "Update Order"
+                                  )}
                                 </Button>
                                 <Badge variant="outline" className="text-[10px] py-0.5">
                                   {statusHistory[order.id]?.length ?? 0} notes
@@ -1310,8 +1431,10 @@ export default function AdminPanel() {
                                 <Button size="sm" variant="outline" onClick={() => editProduct(p)} className="h-8 text-xs font-bold rounded-xl gap-1">
                                   <Edit3 className="w-3.5 h-3.5" /> Edit
                                 </Button>
-                                <Button size="sm" variant="destructive" onClick={() => deleteProduct(p.id)} className="h-8 text-xs font-bold rounded-xl gap-1">
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                <Button size="sm" variant="destructive" onClick={() => deleteProduct(p.id)} disabled={busyKey === `pd-${p.id}`} className="h-8 text-xs font-bold rounded-xl gap-1">
+                                  {busyKey === `pd-${p.id}`
+                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    : <Trash2 className="w-3.5 h-3.5" />}
                                 </Button>
                               </div>
                             </TableCell>
@@ -1457,9 +1580,10 @@ export default function AdminPanel() {
                                 size="sm"
                                 variant={aff.is_active ? "destructive" : "outline"}
                                 onClick={() => toggleAffiliateStatus(aff.id, aff.is_active)}
+                                disabled={busyKey === `af-${aff.id}`}
                                 className="h-7 text-[10px] font-bold rounded-lg px-2.5"
                               >
-                                {aff.is_active ? "Suspend" : "Activate"}
+                                {busyKey === `af-${aff.id}` ? "Saving…" : (aff.is_active ? "Suspend" : "Activate")}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -1519,11 +1643,11 @@ export default function AdminPanel() {
                             <TableCell className="text-right py-3">
                               {w.status === 'pending' && (
                                 <div className="flex items-center justify-end gap-1.5">
-                                  <Button size="sm" onClick={() => updateWithdrawal(w.id, 'paid')} className="h-7 text-[10px] font-bold rounded-lg px-2.5">
-                                    Approve Pay
+                                  <Button size="sm" onClick={() => updateWithdrawal(w.id, 'paid')} disabled={busyKey === `wd-${w.id}-paid`} className="h-7 text-[10px] font-bold rounded-lg px-2.5">
+                                    {busyKey === `wd-${w.id}-paid` ? "Saving…" : "Approve Pay"}
                                   </Button>
-                                  <Button size="sm" variant="destructive" onClick={() => updateWithdrawal(w.id, 'rejected')} className="h-7 text-[10px] font-bold rounded-lg px-2">
-                                    Reject
+                                  <Button size="sm" variant="destructive" onClick={() => updateWithdrawal(w.id, 'rejected')} disabled={busyKey === `wd-${w.id}-rejected`} className="h-7 text-[10px] font-bold rounded-lg px-2">
+                                    {busyKey === `wd-${w.id}-rejected` ? "Saving…" : "Reject"}
                                   </Button>
                                 </div>
                               )}
@@ -1772,29 +1896,13 @@ export default function AdminPanel() {
                       Cancel
                     </Button>
                     <Button
-                      onClick={async () => {
-                        if (!selectedMessage || !replyText.trim()) return;
-                        try {
-                          await api.replyContactMessage(selectedMessage.id, replyText);
-                          setContactMessages(prev => prev.map(m => m.id === selectedMessage.id ? { ...m, status: 'replied', reply: replyText } : m));
-                          toast({
-                            title: "Reply saved & sent!",
-                            description: `Response updated for ${selectedMessage.email}`,
-                          });
-                          setReplyDialogOpen(false);
-                          setReplyText("");
-                          setSelectedMessage(null);
-                        } catch (err: any) {
-                          toast({
-                            title: "Error saving reply",
-                            description: err.message || "Could not save reply to database.",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
+                      onClick={() => sendReply()}
+                      disabled={busyKey === "reply-send"}
                       className="btn-primary rounded-xl text-xs font-bold gap-1.5"
                     >
-                      <Check className="w-4 h-4" /> Send Reply
+                      {busyKey === "reply-send"
+                        ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>)
+                        : (<><Check className="w-4 h-4" /> Send Reply</>)}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -1974,37 +2082,13 @@ export default function AdminPanel() {
                       Cancel
                     </Button>
                     <Button
-                      onClick={async () => {
-                        if (!selectedIssue) return;
-                        try {
-                          await api.updateOrderIssue(selectedIssue.id, {
-                            status: issueStatusText,
-                            admin_reply: issueReplyText,
-                          });
-                          setOrderIssues(prev =>
-                            prev.map(i =>
-                              i.id === selectedIssue.id
-                                ? { ...i, status: issueStatusText, admin_reply: issueReplyText }
-                                : i
-                            )
-                          );
-                          toast({
-                            title: "Issue Updated",
-                            description: `Order #${selectedIssue.order_number} issue status updated to ${issueStatusText}.`,
-                          });
-                          setIssueDialogOpen(false);
-                          setSelectedIssue(null);
-                        } catch (err: any) {
-                          toast({
-                            title: "Update Failed",
-                            description: err.message || "Failed to update order issue.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
+                      onClick={() => saveIssueUpdate()}
+                      disabled={busyKey === "issue-save"}
                       className="btn-primary rounded-xl text-xs font-bold gap-1.5"
                     >
-                      <Check className="w-4 h-4" /> Save Changes
+                      {busyKey === "issue-save"
+                        ? (<><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>)
+                        : (<><Check className="w-4 h-4" /> Save Changes</>)}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -2220,17 +2304,23 @@ export default function AdminPanel() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleToggleCoupon(coupon.id, isActive)}
+                                    disabled={busyKey === `ct-${coupon.id}`}
                                     className="h-8 text-[11px] font-bold rounded-xl px-2.5"
                                   >
-                                    {isActive ? 'Deactivate' : 'Activate'}
+                                    {busyKey === `ct-${coupon.id}` ? (
+                                      <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> Saving…</>
+                                    ) : (isActive ? 'Deactivate' : 'Activate')}
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => handleDeleteCoupon(coupon.id)}
+                                    disabled={busyKey === `cd-${coupon.id}`}
                                     className="h-8 w-8 p-0 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    {busyKey === `cd-${coupon.id}`
+                                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      : <Trash2 className="w-3.5 h-3.5" />}
                                   </Button>
                                 </div>
                               </TableCell>

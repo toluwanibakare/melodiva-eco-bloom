@@ -10,6 +10,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 const Affiliate = () => {
   const navigate = useNavigate();
@@ -64,6 +65,12 @@ const Affiliate = () => {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <SEO 
+        title="Affiliate Program - Earn Commissions with Melodiva"
+        description="Join the Melodiva Skin Care Affiliate Program. Share natural skincare products with your audience across Nigeria and earn 10% commission on referred sales."
+        canonical="/affiliate"
+        keywords="Melodiva affiliate program, skincare affiliate Nigeria, earn money online Nigeria, black soap partner"
+      />
       {/* Back button */}
       <div className="mb-6">
         <Button

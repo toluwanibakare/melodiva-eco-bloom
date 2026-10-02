@@ -1,10 +1,16 @@
 import { AlertTriangle, RefreshCw, Truck, CheckCircle2, ShieldAlert, Mail, Phone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const ReturnsPolicy = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <SEO 
+        title="Returns & Refund Policy"
+        description="Melodiva Skin Care return, exchange, and damaged item replacement policy. Learn how we handle claims and replacements."
+        canonical="/returns-policy"
+      />
       <div className="text-center mb-12 animate-fade-in">
         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
           <RefreshCw className="h-8 w-8 text-primary" />

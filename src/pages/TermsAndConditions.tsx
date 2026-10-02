@@ -1,10 +1,16 @@
 import { FileText, ShieldAlert, Scale, CheckSquare, Mail, Phone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const TermsAndConditions = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <SEO 
+        title="Terms & Conditions"
+        description="Melodiva Skin Care terms and conditions of service, purchasing rules, and site usage guidelines."
+        canonical="/terms-and-conditions"
+      />
       <div className="text-center mb-12 animate-fade-in">
         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
           <FileText className="h-8 w-8 text-primary" />
